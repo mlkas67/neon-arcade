@@ -91,8 +91,8 @@ function ensureCert() {
     return { key: envKey, cert: envCrt };
   }
 
-  // 2. otherwise a self-signed pair, generated once into .certs/
-  const dir = path.join(ROOT, '.certs');
+  // 2. otherwise a self-signed pair, generated once into .certs/ (outside public/)
+  const dir = path.join(__dirname, '.certs');
   const key = path.join(dir, 'key.pem');
   const crt = path.join(dir, 'cert.pem');
   if (fs.existsSync(key) && fs.existsSync(crt)) return { key, cert: crt };
