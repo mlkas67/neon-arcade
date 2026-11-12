@@ -1,0 +1,11 @@
+{
+  "name": "neon-arcade",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Neon Arcade — Geometry Dash and Flappy Bird in the browser, served over HTTPS",
+  "scripts": {
+    "start": "node server.js",
+    "start:http": "PORT=8080 node server.js"
+  },
+  "engines": { "node": ">=18" }
+}

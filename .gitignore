@@ -2,3 +2,5 @@ node_modules/
 dist/
 *.zip
 .certs/
+server.log
+*.pem

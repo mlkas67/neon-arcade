@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#08080f" />
+<meta name="description" content="Neon Arcade — play Geometry Dash and Flappy Bird in your browser." />
+<title>Neon Arcade — Geometry Dash &amp; Flappy Bird</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0b14'/%3E%3Cpath d='M18 46 L32 18 L46 46 Z' fill='%2334e0ff'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <div class="app">
+    <header class="topbar">
+      <a class="brand" href="#" id="brandLink">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-name">NEON<b>ARCADE</b></span>
+      </a>
+      <div class="top-actions">
+        <button class="icon-btn" id="soundBtn" type="button" aria-label="Toggle sound" title="Toggle sound">
+          <span class="ico-sound" aria-hidden="true">🔊</span>
+        </button>
+        <a class="icon-btn" id="githubBtn" href="#" hidden aria-label="Source"></a>
+      </div>
+    </header>
+
+    <main class="main">
+      <!-- ---------------- MENU ---------------- -->
+      <section class="screen screen-menu is-active" id="menuScreen">
+        <div class="hero">
+          <p class="eyebrow">Two classics · zero downloads</p>
+          <h1>Pick your <span class="grad">poison</span></h1>
+          <p class="lede">One button each. Infinite rage. Built with canvas, running entirely in your browser.</p>
+        </div>
+
+        <div class="cards">
+          <button class="card card-gd" type="button" data-game="gd">
+            <div class="card-art" aria-hidden="true">
+              <div class="art-sky"></div>
+              <div class="art-ground"></div>
+              <div class="art-cube"></div>
+              <div class="art-spikes"><i></i><i></i><i></i></div>
+              <div class="art-floor"></div>
+            </div>
+            <div class="card-body">
+              <div class="card-top">
+                <span class="tag tag-cyan">RHYTHM RUNNER</span>
+                <span class="best-chip">BEST <b data-best="gd">0</b></span>
+              </div>
+              <h2>Geometry Dash</h2>
+              <p>Auto-run through spike fields. Jump at the perfect beat, land on blocks, don't clip a corner.</p>
+              <span class="cta">Play <span class="arrow">→</span></span>
+            </div>
+          </button>
+
+          <button class="card card-flappy" type="button" data-game="flappy">
+            <div class="card-art" aria-hidden="true">
+              <div class="art-sky art-sky-flappy"></div>
+              <div class="art-pipe art-pipe-top"></div>
+              <div class="art-pipe art-pipe-bottom"></div>
+              <div class="art-bird"><i class="wing"></i><i class="eye"></i></div>
+              <div class="art-floor"></div>
+            </div>
+            <div class="card-body">
+              <div class="card-top">
+                <span class="tag tag-yellow">ONE-TAP FLYER</span>
+                <span class="best-chip">BEST <b data-best="flappy">0</b></span>
+              </div>
+              <h2>Flappy Bird</h2>
+              <p>Tap to flap. Thread the gap between pipes, keep your nerve, and chase that one extra point.</p>
+              <span class="cta">Play <span class="arrow">→</span></span>
+            </div>
+          </button>
+        </div>
+
+        <div class="menu-foot">
+          <span><kbd>Space</kbd> / <kbd>Click</kbd> to jump &amp; flap</span>
+          <span><kbd>P</kbd> pause</span>
+          <span><kbd>R</kbd> restart</span>
+        </div>
+      </section>
+
+      <!-- ---------------- STAGE ---------------- -->
+      <section class="screen screen-stage" id="stageScreen">
+        <div class="stage-head">
+          <button class="ghost-btn" id="backBtn" type="button">← Arcade</button>
+          <h2 class="stage-title" id="stageTitle">Geometry Dash</h2>
+          <button class="ghost-btn" id="pauseBtn" type="button">Pause</button>
+        </div>
+
+        <div class="canvas-frame" id="canvasFrame">
+          <canvas id="game" width="960" height="540" aria-label="Game canvas"></canvas>
+
+          <div class="overlay" id="overlay" data-mode="start">
+            <div class="overlay-card">
+              <p class="overlay-eyebrow" id="ovEyebrow">Geometry Dash</p>
+              <h3 class="overlay-title" id="ovTitle">Ready?</h3>
+              <p class="overlay-text" id="ovText">Press <kbd>Space</kbd> or tap to start.</p>
+              <div class="overlay-stats" id="ovStats" hidden>
+                <div class="ov-stat"><span>Score</span><b id="ovScore">0</b></div>
+                <div class="ov-stat"><span>Best</span><b id="ovBest">0</b></div>
+              </div>
+              <button class="primary-btn" id="ovBtn" type="button">Start</button>
+              <p class="overlay-note" id="ovNote"></p>
+            </div>
+          </div>
+
+          <div class="corner-hint" id="cornerHint">SPACE / CLICK</div>
+        </div>
+
+        <div class="stage-foot">
+          <div class="stat"><span>SCORE</span><b id="hudScore">0</b></div>
+          <div class="stat"><span>BEST</span><b id="hudBest">0</b></div>
+          <div class="stat stat-right"><span id="hudHint">Hold jump to bounce · land on blocks</span></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-foot">
+      <span>Neon Arcade — a tiny browser arcade.</span>
+      <span class="dot-sep">•</span>
+      <span>No installs, no accounts, scores stay on your device.</span>
+    </footer>
+  </div>
+
+  <script src="js/core.js"></script>
+  <script src="js/geometry-dash.js"></script>
+  <script src="js/flappy.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
