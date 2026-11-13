@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "Neon Arcade — twelve games",
-  "short_name": "Neon Arcade",
+  "name": "Legeniko Arcade — twelve games",
+  "short_name": "Legeniko Arcade",
   "description": "Twelve neon arcade games in the browser: Geometry Dash, Flappy Bird, 2048, three 3D worlds and more. Installs as an app and plays offline.",
   "start_url": "./?source=pwa",
   "scope": "./",

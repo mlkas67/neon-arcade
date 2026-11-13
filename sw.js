@@ -1,7 +1,7 @@
-/* Neon Arcade service worker — the whole cabinet is static, so it can live
+/* Legeniko Arcade service worker — the whole cabinet is static, so it can live
    offline. Shell + game scripts are precached on install; anything else that
    gets fetched is cached as it is used. */
-const VERSION = 'neon-arcade-v4';
+const VERSION = 'legeniko-arcade-v1';
 
 const SHELL = [
   './',
