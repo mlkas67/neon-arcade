@@ -44,6 +44,30 @@ TLS_CERT=cert.pem TLS_KEY=key.pem npm start
 certificate there (e.g. from Let's Encrypt on a domain) and the same command
 serves production-grade HTTPS.
 
+### A public HTTPS link with a real certificate
+
+Want to play from your phone or send the link to someone? Put it on the
+internet behind a genuine, browser-trusted certificate — no warning page at all:
+
+```bash
+npm start              # the game server, in one terminal
+bash scripts/share.sh  # prints https://<random-words>.trycloudflare.com
+```
+
+`scripts/share.sh` starts a Cloudflare quick tunnel to the local server and
+prints a public `https://` URL backed by a Google Trust Services certificate, so
+every browser treats it as secure. No account or token is needed. The link works
+while the tunnel and this machine are running; stop the script (`Ctrl-C`) to take
+it down, or run it again for a fresh address.
+
+That script needs `cloudflared`. On macOS `brew install cloudflared`, on Linux:
+
+```bash
+curl -fsSL -o ~/.local/bin/cloudflared \
+  https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+chmod +x ~/.local/bin/cloudflared
+```
+
 ## Controls
 
 | Game | Keys | Pointer |
@@ -82,6 +106,7 @@ public/                 the whole site (this is all the server exposes)
   js/games/memory.js
   js/games/whack.js
 server.js               static HTTPS/HTTP server, path-guarded to public/
+scripts/share.sh        public https:// link via a Cloudflare quick tunnel
 ```
 
 Games plug into the engine through `window.Games.<id>` and implement
