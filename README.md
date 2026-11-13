@@ -1,9 +1,9 @@
 # Neon Arcade
 
-Ten arcade games in one neon-lit browser page — no build step and no
-package installs, just HTML/CSS/JS on a shared canvas, with Neon Vice running
-in full 3D on a locally vendored three.js. It installs as an app and plays
-offline.
+Twelve arcade games in one neon-lit browser page — no build step and no
+package installs, just HTML/CSS/JS on a shared canvas, with three of them
+running in full 3D on a locally vendored three.js. It installs as an app and
+plays offline.
 
 **Play it:** <https://mlkas67.github.io/neon-arcade/>
 **Source:** <https://github.com/mlkas67/neon-arcade>
@@ -21,7 +21,7 @@ window, icon and dock/taskbar entry — no store, no download.
 | Firefox | menu → *Install* / *Add to Home screen* where supported |
 
 Once installed, the whole cabinet launches from the icon and **works with no
-network**: `sw.js` precaches the page, styles, engine and all ten games (21
+network**: `sw.js` precaches the page, styles, engine and all twelve games (24
 files), then refreshes them in the background when you are online. Installed
 icons also get shortcuts to Geometry Dash, Flappy Bird and 2048.
 
@@ -37,6 +37,8 @@ icons also get shortcuts to Geometry Dash, Flappy Bird and 2048.
 | 8 | **Memory Grid** | flip pairs in a 4×4 grid, finish in as few moves as possible |
 | 9 | **Whack-a-Bot** | 40-second bot-bashing sprint with gold bots and combos |
 | 10 | **Neon Vice 3D** | third-person open-city driving in WebGL: run deliveries, bank cash, out-drive the cops (press <kbd>0</kbd>) |
+| 11 | **Neon Ridge** | 4.2 km of neon snowboard downhill in 3D: carve, thread gates, trick off the banks, don't wipe out (press <kbd>-</kbd>) |
+| 12 | **Neon Deck** | 3D skate plaza: push, ollie, flip and grind the rails — chain a combo before you bail (press <kbd>=</kbd>) |
 
 ## Run it
 
@@ -104,9 +106,12 @@ chmod +x ~/.local/bin/cloudflared
 | Memory Grid | — | click or tap cards |
 | Whack-a-Bot | — | click or tap bots |
 | Neon Vice 3D | `↑`/`W` gas, `↓`/`S` brake + reverse, `←` `→` steer, `Space` handbrake, `E` get in/out | keyboard needed — there are no touch controls |
+| Neon Ridge | `←` `→` / `A` `D` carve, `↓`/`S` tuck, `Space` jump, `↑`/`W` spin in the air | tap to jump, drag to carve |
+| Neon Deck | `W`/`↑` push, `A` `D` carve, `A` `D` in the air to flip, `Space` ollie / pop out of a grind, `S` brake | tap to ollie |
 
 Shared: `P` / `Esc` pauses, `R` restarts, `1`–`9` opens a game straight from the
-menu (`0` opens Neon Vice), and ‹ Back or the logo returns to the menu.
+menu, `0` opens Neon Vice, `-` opens Neon Ridge, `=` opens Neon Deck, and ‹ Back
+or the logo returns to the menu.
 
 Best scores are stored per browser in `localStorage` (`neon.best.<game>`) and
 shown on the menu chips. Sound can be muted with the speaker button.
@@ -120,7 +125,7 @@ public/                 the whole site (this is all the server exposes)
   js/core.js            shared engine: canvas, loop, input, HUD, overlays, audio, particles
   js/geometry-dash.js
   js/flappy.js
-  js/main.js            menu wiring and the 1–9 / 0 shortcuts
+  js/main.js            menu wiring and the 1–9 / 0 / - / = shortcuts
   js/games/breakout.js
   js/games/snake.js
   js/games/puzzle2048.js
@@ -129,6 +134,9 @@ public/                 the whole site (this is all the server exposes)
   js/games/memory.js
   js/games/whack.js
   js/games/vice3d.js    Neon Vice 3D: three.js city, chase camera, cars, peds, wanted level
+  js/games/ridge.js     Neon Ridge: procedural 3D piste, gates, rollers, wipeouts
+  js/games/skate.js     Neon Deck: 3D skate plaza, kickers, rails, flip tricks
+  js/lib/stage3d.js     shared 3D scaffold (renderer, camera, HUD, teardown)
   vendor/three.min.js   three.js r160 (UMD build, vendored so the game works offline)
 server.js               static HTTPS/HTTP server, path-guarded to public/
 scripts/share.sh        public https:// link via a Cloudflare quick tunnel
@@ -138,9 +146,14 @@ sw.js                   service worker: precache + offline play
 icons/                  app icons (maskable, apple-touch, favicon)
 ```
 
-Neon Vice 3D needs WebGL. If a browser blocks it, the rest of the cabinet still
-works; the game logs a warning instead of starting. Its WebGL canvas is torn down
-on ‹ Back through an optional `destroy()` hook so the 2D games keep a clean scene.
+The three 3D games (Neon Vice, Neon Ridge, Neon Deck) need WebGL. If a browser
+blocks it, the rest of the cabinet still works; they log a warning instead of
+starting. Their WebGL canvases are torn down on ‹ Back through the engine's
+optional `destroy()` hook so the 2D games keep a clean scene.
+
+Neon Ridge and Neon Deck build their worlds from seeded pseudo-random numbers, so
+the mountain and the plaza are the same on every visit, and all their geometry is
+generated in code — there are no 3D model or texture files to download.
 
 Games plug into the engine through `window.Games.<id>` and implement
 `reset(arcade)`, `update(dt)`, `draw(ctx, dt)` and `action()`, with optional

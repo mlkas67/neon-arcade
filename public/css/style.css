@@ -543,6 +543,118 @@ kbd {
   transition: opacity 0.08s linear;
 }
 
+.s3d-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.s3d-hud {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  padding: clamp(10px, 2.2vw, 20px);
+  pointer-events: none;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  color: #eaf6ff;
+}
+
+.s3d-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.s3d-chip {
+  font-size: clamp(11px, 1.7vw, 14px);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(226, 240, 255, 0.75);
+  background: rgba(6, 8, 18, 0.5);
+  border: 1px solid rgba(120, 200, 255, 0.22);
+  border-radius: 999px;
+  padding: 5px 12px;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+}
+
+.s3d-big {
+  font-size: clamp(20px, 3.6vw, 34px);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 18px rgba(52, 224, 255, 0.7), 0 2px 10px rgba(0, 0, 0, 0.85);
+}
+
+.s3d-mid {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+.s3d-mid.is-on { opacity: 1; }
+
+.s3d-mid small {
+  display: block;
+  font-size: 0.42em;
+  letter-spacing: 0.24em;
+  font-weight: 600;
+  opacity: 0.75;
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+
+.s3d-bars {
+  position: absolute;
+  left: clamp(10px, 2.2vw, 20px);
+  right: clamp(10px, 2.2vw, 20px);
+  bottom: clamp(10px, 2.2vw, 20px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.s3d-hint {
+  font-size: clamp(11px, 1.7vw, 14px);
+  letter-spacing: 0.04em;
+  color: rgba(234, 246, 255, 0.8);
+  background: rgba(6, 8, 18, 0.55);
+  border: 1px solid rgba(120, 200, 255, 0.22);
+  border-radius: 999px;
+  padding: 5px 12px;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+}
+.s3d-hint:empty { display: none; }
+
+.s3d-combo {
+  font-size: clamp(14px, 2.4vw, 22px);
+  font-weight: 800;
+  color: #ffd166;
+  text-shadow: 0 0 16px rgba(255, 209, 102, 0.75);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.s3d-combo.is-on { opacity: 1; }
+
+.s3d-flash {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.1s linear;
+}
+
+.ridge .s3d-top .s3d-big { color: #d9f4ff; }
+.ridge .s3d-flash { background: radial-gradient(ellipse at center, rgba(120, 210, 255, 0) 40%, rgba(160, 230, 255, 0.75) 120%); }
+.s3d-timer.is-low { color: #ff6ea8; text-shadow: 0 0 18px rgba(255, 77, 157, 0.8); }
+
 .overlay-card {
   width: min(430px, 100%);
   text-align: center;
@@ -760,6 +872,10 @@ kbd {
 .card-whack .mini-art { background: linear-gradient(150deg, #201226, #3a1633 60%, #571d3c); }
 .card-vice .mini-art { background: linear-gradient(150deg, #061018, #0d2233 55%, #14324a); }
 .card-vice .mini-art::after { background: radial-gradient(circle at 50% 46%, rgba(52, 224, 255, 0.4), transparent 62%); }
+.card-ridge .mini-art { background: linear-gradient(150deg, #05131f, #0d3050 55%, #16587d); }
+.card-ridge .mini-art::after { background: radial-gradient(circle at 50% 42%, rgba(160, 230, 255, 0.42), transparent 64%); }
+.card-deck .mini-art { background: linear-gradient(150deg, #140b25, #2a1347 55%, #421d63); }
+.card-deck .mini-art::after { background: radial-gradient(circle at 50% 46%, rgba(139, 92, 246, 0.42), transparent 64%); }
 
 .card-break:hover, .card-break:focus-visible { box-shadow: 0 20px 50px -26px rgba(52, 224, 255, 0.6); }
 .card-snake:hover, .card-snake:focus-visible { box-shadow: 0 20px 50px -26px rgba(74, 222, 128, 0.55); }
@@ -769,6 +885,8 @@ kbd {
 .card-memory:hover, .card-memory:focus-visible { box-shadow: 0 20px 50px -26px rgba(255, 77, 157, 0.45); }
 .card-whack:hover, .card-whack:focus-visible { box-shadow: 0 20px 50px -26px rgba(255, 209, 102, 0.45); }
 .card-vice:hover, .card-vice:focus-visible { box-shadow: 0 20px 50px -26px rgba(52, 224, 255, 0.5); }
+.card-ridge:hover, .card-ridge:focus-visible { box-shadow: 0 20px 50px -26px rgba(160, 230, 255, 0.55); }
+.card-deck:hover, .card-deck:focus-visible { box-shadow: 0 20px 50px -26px rgba(139, 92, 246, 0.55); }
 
 /* ---------- responsive ---------- */
 @media (max-width: 900px) {
