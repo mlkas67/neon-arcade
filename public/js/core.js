@@ -286,10 +286,12 @@
     const game = window.Games && window.Games[id];
     if (!game) return;
     blurActive();
+    this.menuScroll = window.scrollY;
     this.gameId = id;
     this.game = game;
     this.score = 0;
     this.best = Store.get('best.' + id, 0) || 0;
+    this.bestAtStart = this.best;
     Fx.clear();
 
     el.menu.classList.remove('is-active');
@@ -323,6 +325,7 @@
     el.stage.classList.remove('is-active');
     el.menu.classList.add('is-active');
     refreshMenuBests();
+    window.scrollTo(0, this.menuScroll || 0);
   };
 
   Arcade.begin = function () {
@@ -373,8 +376,7 @@
   Arcade.die = function (reason) {
     if (this.state !== 'playing') return;
     this.state = 'dead';
-    const prevBest = this.best;
-    const isBest = this.score > prevBest && this.score > 0;
+    const isBest = this.score > (this.bestAtStart || 0) && this.score > 0;
     this.saveBest();
     if (this.game.onDeath) this.game.onDeath(reason);
     const token = ++this.overlayToken;
@@ -419,11 +421,17 @@
     }
     switch (e.code) {
       case 'Space':
+        if (Arcade.state !== 'menu') {
+          e.preventDefault();
+          primaryAction();
+        }
+        break;
       case 'ArrowUp':
       case 'KeyW':
         if (Arcade.state !== 'menu') {
           e.preventDefault();
-          primaryAction();
+          // games that steer with the up arrow handle it themselves
+          if (!(Arcade.game && Arcade.game.usesArrowUp)) primaryAction();
         }
         break;
       case 'Enter':
@@ -601,6 +609,14 @@
     noShadow(c) {
       c.shadowColor = 'transparent';
       c.shadowBlur = 0;
+    },
+    // pointer position in the 960x540 game space, whatever the canvas is scaled to
+    eventPoint(e) {
+      const r = canvas.getBoundingClientRect();
+      return {
+        x: (e.clientX - r.left) * (W / r.width),
+        y: (e.clientY - r.top) * (H / r.height)
+      };
     }
   };
 

@@ -4,8 +4,8 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#08080f" />
-<meta name="description" content="Neon Arcade — play Geometry Dash and Flappy Bird in your browser." />
-<title>Neon Arcade — Geometry Dash &amp; Flappy Bird</title>
+<meta name="description" content="Neon Arcade — nine browser games: Geometry Dash, Flappy Bird, Snake, 2048, Breakout, Asteroids, Pong, Memory and Whack-a-Bot." />
+<title>Neon Arcade — nine games in your browser</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0b14'/%3E%3Cpath d='M18 46 L32 18 L46 46 Z' fill='%2334e0ff'/%3E%3C/svg%3E" />
 <link rel="stylesheet" href="css/style.css" />
 </head>
@@ -31,7 +31,7 @@
       <!-- ---------------- MENU ---------------- -->
       <section class="screen screen-menu is-active" id="menuScreen">
         <div class="hero">
-          <p class="eyebrow">Two classics · zero downloads</p>
+          <p class="eyebrow">Nine games · zero downloads</p>
           <h1>Pick your <span class="grad">poison</span></h1>
           <p class="lede">One button each. Infinite rage. Built with canvas, running entirely in your browser.</p>
         </div>
@@ -76,8 +76,100 @@
           </button>
         </div>
 
+        <div class="cabinet-head">
+          <h2>More from the cabinet</h2>
+          <p>Seven more for when you have five minutes and no better ideas.</p>
+        </div>
+
+        <div class="cards cards-more">
+          <button class="card mini card-break" type="button" data-game="break">
+            <div class="mini-art" aria-hidden="true"><span class="mini-glyph">🧱</span></div>
+            <div class="card-body">
+              <div class="card-top">
+                <span class="tag tag-cyan">KINETIC</span>
+                <span class="best-chip">BEST <b data-best="break">0</b></span>
+              </div>
+              <h2>Brick Breaker</h2>
+              <p>Angle the ball off your paddle, crack every brick, and keep three lives alive as the wall gets faster.</p>
+            </div>
+          </button>
+
+          <button class="card mini card-snake" type="button" data-game="snake">
+            <div class="mini-art" aria-hidden="true"><span class="mini-glyph">🐍</span></div>
+            <div class="card-body">
+              <div class="card-top">
+                <span class="tag tag-green">ARCADE</span>
+                <span class="best-chip">BEST <b data-best="snake">0</b></span>
+              </div>
+              <h2>Neon Snake</h2>
+              <p>Eat orbs, grow long, never fold back into your own tail. The board speeds up with every bite.</p>
+            </div>
+          </button>
+
+          <button class="card mini card-p2048" type="button" data-game="p2048">
+            <div class="mini-art" aria-hidden="true"><span class="mini-glyph">🔢</span></div>
+            <div class="card-body">
+              <div class="card-top">
+                <span class="tag tag-violet">PUZZLE</span>
+                <span class="best-chip">BEST <b data-best="p2048">0</b></span>
+              </div>
+              <h2>2048</h2>
+              <p>Slide the grid, merge the twins, and chase the 2048 tile until the board has nowhere left to go.</p>
+            </div>
+          </button>
+
+          <button class="card mini card-rocks" type="button" data-game="rocks">
+            <div class="mini-art" aria-hidden="true"><span class="mini-glyph">☄️</span></div>
+            <div class="card-body">
+              <div class="card-top">
+                <span class="tag tag-pink">SHOOTER</span>
+                <span class="best-chip">BEST <b data-best="rocks">0</b></span>
+              </div>
+              <h2>Asteroid Drift</h2>
+              <p>Turn, thrust, fire. Every rock you shatter becomes two smaller, faster problems.</p>
+            </div>
+          </button>
+
+          <button class="card mini card-pong" type="button" data-game="pong">
+            <div class="mini-art" aria-hidden="true"><span class="mini-glyph">🏓</span></div>
+            <div class="card-body">
+              <div class="card-top">
+                <span class="tag tag-cyan">RETRO DUEL</span>
+                <span class="best-chip">BEST <b data-best="pong">0</b></span>
+              </div>
+              <h2>Neon Pong</h2>
+              <p>The oldest duel in games. First to seven, against a CPU that never blinks and never gets tired.</p>
+            </div>
+          </button>
+
+          <button class="card mini card-memory" type="button" data-game="memory">
+            <div class="mini-art" aria-hidden="true"><span class="mini-glyph">🧠</span></div>
+            <div class="card-body">
+              <div class="card-top">
+                <span class="tag tag-violet">BRAIN</span>
+                <span class="best-chip">BEST <b data-best="memory">0</b></span>
+              </div>
+              <h2>Memory Grid</h2>
+              <p>Eight pairs, sixteen cards. Clear the grid in as few moves as your memory will allow.</p>
+            </div>
+          </button>
+
+          <button class="card mini card-whack" type="button" data-game="whack">
+            <div class="mini-art" aria-hidden="true"><span class="mini-glyph">🤖</span></div>
+            <div class="card-body">
+              <div class="card-top">
+                <span class="tag tag-yellow">REFLEX</span>
+                <span class="best-chip">BEST <b data-best="whack">0</b></span>
+              </div>
+              <h2>Whack-a-Bot</h2>
+              <p>Forty seconds of clicking robots. Gold bots pay triple, and every clean chain raises the multiplier.</p>
+            </div>
+          </button>
+        </div>
+
         <div class="menu-foot">
-          <span><kbd>Space</kbd> / <kbd>Click</kbd> to jump &amp; flap</span>
+          <span><kbd>1</kbd>–<kbd>9</kbd> jump straight in</span>
+          <span><kbd>Space</kbd> / <kbd>Click</kbd> action</span>
           <span><kbd>P</kbd> pause</span>
           <span><kbd>R</kbd> restart</span>
         </div>
@@ -129,6 +221,13 @@
   <script src="js/core.js"></script>
   <script src="js/geometry-dash.js"></script>
   <script src="js/flappy.js"></script>
+  <script src="js/games/breakout.js"></script>
+  <script src="js/games/snake.js"></script>
+  <script src="js/games/puzzle2048.js"></script>
+  <script src="js/games/asteroids.js"></script>
+  <script src="js/games/pong.js"></script>
+  <script src="js/games/memory.js"></script>
+  <script src="js/games/whack.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

@@ -11,11 +11,14 @@
     });
   });
 
-  // number keys jump straight into a game from the menu
+  // number keys jump straight into a game from the menu, in menu order
+  const ORDER = ['gd', 'flappy', 'break', 'snake', 'p2048', 'rocks', 'pong', 'memory', 'whack'];
   window.addEventListener('keydown', function (e) {
     if (!window.Arcade || window.Arcade.state !== 'menu') return;
-    if (e.code === 'Digit1') window.Arcade.openGame('gd');
-    if (e.code === 'Digit2') window.Arcade.openGame('flappy');
+    const m = /^Digit([1-9])$/.exec(e.code);
+    if (!m) return;
+    const id = ORDER[Number(m[1]) - 1];
+    if (id) window.Arcade.openGame(id);
   });
 
   // refresh best scores when coming back from a run
