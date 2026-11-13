@@ -317,9 +317,11 @@
   };
 
   Arcade.closeGame = function () {
+    const leaving = this.game;
     this.state = 'menu';
     this.gameId = null;
     this.game = null;
+    if (leaving && typeof leaving.destroy === 'function') leaving.destroy();
     Fx.clear();
     hideOverlay();
     el.stage.classList.remove('is-active');

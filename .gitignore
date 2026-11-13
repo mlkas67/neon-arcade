@@ -4,3 +4,4 @@ dist/
 .certs/
 server.log
 *.pem
+.agent_tmp/

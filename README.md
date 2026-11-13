@@ -1,8 +1,9 @@
 # Neon Arcade
 
-Ten arcade games in one neon-lit browser page — no build step, no
-dependencies, just HTML/CSS/JS on a shared canvas. It installs as an app and
-plays offline.
+Ten arcade games in one neon-lit browser page — no build step and no
+package installs, just HTML/CSS/JS on a shared canvas, with Neon Vice running
+in full 3D on a locally vendored three.js. It installs as an app and plays
+offline.
 
 **Play it:** <https://mlkas67.github.io/neon-arcade/>
 **Source:** <https://github.com/mlkas67/neon-arcade>
@@ -20,7 +21,7 @@ window, icon and dock/taskbar entry — no store, no download.
 | Firefox | menu → *Install* / *Add to Home screen* where supported |
 
 Once installed, the whole cabinet launches from the icon and **works with no
-network**: `sw.js` precaches the page, styles, engine and all ten games (20
+network**: `sw.js` precaches the page, styles, engine and all ten games (21
 files), then refreshes them in the background when you are online. Installed
 icons also get shortcuts to Geometry Dash, Flappy Bird and 2048.
 
@@ -35,7 +36,7 @@ icons also get shortcuts to Geometry Dash, Flappy Bird and 2048.
 | 7 | **Neon Pong** | you against the CPU, first to 7 |
 | 8 | **Memory Grid** | flip pairs in a 4×4 grid, finish in as few moves as possible |
 | 9 | **Whack-a-Bot** | 40-second bot-bashing sprint with gold bots and combos |
-| 10 | **Neon Vice** | top-down open-city driving sandbox: run deliveries, bank cash, out-drive the cops (press <kbd>0</kbd>) |
+| 10 | **Neon Vice 3D** | third-person open-city driving in WebGL: run deliveries, bank cash, out-drive the cops (press <kbd>0</kbd>) |
 
 ## Run it
 
@@ -102,7 +103,7 @@ chmod +x ~/.local/bin/cloudflared
 | Neon Pong | `W` `S` move, `Space` serve | mouse or touch to move |
 | Memory Grid | — | click or tap cards |
 | Whack-a-Bot | — | click or tap bots |
-| Neon Vice | `↑`/`W` gas, `↓`/`S` brake + reverse, `←` `→` steer, `Space` handbrake, `E` get in/out | not used — it is a driving game |
+| Neon Vice 3D | `↑`/`W` gas, `↓`/`S` brake + reverse, `←` `→` steer, `Space` handbrake, `E` get in/out | keyboard needed — there are no touch controls |
 
 Shared: `P` / `Esc` pauses, `R` restarts, `1`–`9` opens a game straight from the
 menu (`0` opens Neon Vice), and ‹ Back or the logo returns to the menu.
@@ -127,7 +128,8 @@ public/                 the whole site (this is all the server exposes)
   js/games/pong.js
   js/games/memory.js
   js/games/whack.js
-  js/games/vice.js      Neon Vice: camera-following city, cars, peds, wanted level
+  js/games/vice3d.js    Neon Vice 3D: three.js city, chase camera, cars, peds, wanted level
+  vendor/three.min.js   three.js r160 (UMD build, vendored so the game works offline)
 server.js               static HTTPS/HTTP server, path-guarded to public/
 scripts/share.sh        public https:// link via a Cloudflare quick tunnel
 scripts/publish-pages.sh  rebuild the gh-pages branch that GitHub Pages serves
@@ -135,6 +137,10 @@ manifest.webmanifest    PWA manifest (name, icons, shortcuts, standalone display
 sw.js                   service worker: precache + offline play
 icons/                  app icons (maskable, apple-touch, favicon)
 ```
+
+Neon Vice 3D needs WebGL. If a browser blocks it, the rest of the cabinet still
+works; the game logs a warning instead of starting. Its WebGL canvas is torn down
+on ‹ Back through an optional `destroy()` hook so the 2D games keep a clean scene.
 
 Games plug into the engine through `window.Games.<id>` and implement
 `reset(arcade)`, `update(dt)`, `draw(ctx, dt)` and `action()`, with optional
