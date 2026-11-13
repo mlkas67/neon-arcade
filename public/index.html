@@ -218,7 +218,7 @@
 
         <div class="menu-foot">
           <span><kbd>1</kbd>–<kbd>9</kbd> · <kbd>0</kbd> jump straight in</span>
-          <span><kbd>Space</kbd> / <kbd>Click</kbd> action</span>
+          <span><kbd>Space</kbd> / <kbd>Click</kbd> / <kbd>Tap</kbd> action</span>
           <span><kbd>P</kbd> pause</span>
           <span><kbd>R</kbd> restart</span>
         </div>
@@ -229,7 +229,10 @@
         <div class="stage-head">
           <button class="ghost-btn" id="backBtn" type="button">← Arcade</button>
           <h2 class="stage-title" id="stageTitle">Geometry Dash</h2>
-          <button class="ghost-btn" id="pauseBtn" type="button">Pause</button>
+          <div class="stage-actions">
+            <button class="ghost-btn fs-btn" id="fsBtn" type="button" hidden aria-label="Full screen" title="Full screen">⛶</button>
+            <button class="ghost-btn" id="pauseBtn" type="button">Pause</button>
+          </div>
         </div>
 
         <div class="canvas-frame" id="canvasFrame">
@@ -282,6 +285,7 @@
   <script src="js/games/vice3d.js"></script>
   <script src="js/games/ridge.js"></script>
   <script src="js/games/skate.js"></script>
+  <script src="js/lib/touch.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

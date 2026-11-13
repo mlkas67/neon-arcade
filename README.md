@@ -105,7 +105,7 @@ chmod +x ~/.local/bin/cloudflared
 | Neon Pong | `W` `S` move, `Space` serve | mouse or touch to move |
 | Memory Grid | — | click or tap cards |
 | Whack-a-Bot | — | click or tap bots |
-| Neon Vice 3D | `↑`/`W` gas, `↓`/`S` brake + reverse, `←` `→` steer, `Space` handbrake, `E` get in/out | keyboard needed — there are no touch controls |
+| Neon Vice 3D | `↑`/`W` gas, `↓`/`S` brake + reverse, `←` `→` steer, `Space` handbrake, `E` get in/out | on-screen pads: `◀` `▶` steer, GAS, BRAKE, DRIFT |
 | Neon Ridge | `←` `→` / `A` `D` carve, `↓`/`S` tuck, `Space` jump, `↑`/`W` spin in the air | tap to jump, drag to carve |
 | Neon Deck | `W`/`↑` push, `A` `D` carve, `A` `D` in the air to flip, `Space` ollie / pop out of a grind, `S` brake | tap to ollie |
 
@@ -115,6 +115,20 @@ or the logo returns to the menu.
 
 Best scores are stored per browser in `localStorage` (`legeniko.best.<game>`) and
 shown on the menu chips. Sound can be muted with the speaker button.
+
+### On a phone or tablet
+
+Touch devices get their own controls, so nothing needs a keyboard:
+
+* **Tap-anywhere games** (Geometry Dash, Flappy Bird, Asteroid Drift, Neon Snake,
+  2048, Memory Grid, Whack-a-Bot) already read taps and swipes on the picture.
+* **Games with a paddle or a car** dock a row of big buttons *under* the picture
+  — Brick Breaker, Neon Pong, Neon Vice 3D, Neon Ridge and Neon Deck. Each button
+  sends the same key the desktop game listens for, so both paths behave the same.
+* The **⛶ button** in the stage header goes full screen and tries to lock
+  landscape; it is available on desktop too.
+
+Loading the page with `?touch=1` forces the pads on for testing on a computer.
 
 ## Layout
 

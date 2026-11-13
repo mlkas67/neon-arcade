@@ -1,7 +1,7 @@
 /* Legeniko Arcade service worker — the whole cabinet is static, so it can live
    offline. Shell + game scripts are precached on install; anything else that
    gets fetched is cached as it is used. */
-const VERSION = 'legeniko-arcade-v1';
+const VERSION = 'legeniko-arcade-v2';
 
 const SHELL = [
   './',
@@ -22,6 +22,7 @@ const SHELL = [
   'vendor/three.min.js',
   'js/games/vice3d.js',
   'js/lib/stage3d.js',
+  'js/lib/touch.js',
   'js/games/ridge.js',
   'js/games/skate.js',
   'icons/icon-192.png',
