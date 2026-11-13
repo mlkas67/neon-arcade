@@ -1,8 +1,28 @@
 # Neon Arcade
 
 Nine arcade games in one neon-lit browser page — no build step, no
-dependencies, just HTML/CSS/JS on a shared canvas, served by a tiny Node server
-over **HTTPS**.
+dependencies, just HTML/CSS/JS on a shared canvas. It installs as an app and
+plays offline.
+
+**Play it:** <https://mlkas67.github.io/neon-arcade/>
+**Source:** <https://github.com/mlkas67/neon-arcade>
+
+## Install it as an app
+
+The site is a PWA, so the browser can install it as a real app with its own
+window, icon and dock/taskbar entry — no store, no download.
+
+| Where | How |
+|-------|-----|
+| Chrome / Edge (desktop) | click the **Install** button in the page header, or the install icon at the right of the address bar |
+| Android (Chrome) | **Install** in the header, or menu ⋮ → *Add to Home screen* |
+| iPhone / iPad (Safari) | Share → *Add to Home Screen* (the header's Install button shows these steps) |
+| Firefox | menu → *Install* / *Add to Home screen* where supported |
+
+Once installed, the whole cabinet launches from the icon and **works with no
+network**: `sw.js` precaches the page, styles, engine and all nine games (19
+files), then refreshes them in the background when you are online. Installed
+icons also get shortcuts to Geometry Dash, Flappy Bird and 2048.
 
 | # | Game | What it is |
 |---|------|-----------|
@@ -107,6 +127,10 @@ public/                 the whole site (this is all the server exposes)
   js/games/whack.js
 server.js               static HTTPS/HTTP server, path-guarded to public/
 scripts/share.sh        public https:// link via a Cloudflare quick tunnel
+scripts/publish-pages.sh  rebuild the gh-pages branch that GitHub Pages serves
+manifest.webmanifest    PWA manifest (name, icons, shortcuts, standalone display)
+sw.js                   service worker: precache + offline play
+icons/                  app icons (maskable, apple-touch, favicon)
 ```
 
 Games plug into the engine through `window.Games.<id>` and implement
