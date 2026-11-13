@@ -1,4 +1,4 @@
-# Neon Arcade
+# Legeniko Arcade
 
 Twelve arcade games in one neon-lit browser page — no build step and no
 package installs, just HTML/CSS/JS on a shared canvas, with three of them
@@ -113,7 +113,7 @@ Shared: `P` / `Esc` pauses, `R` restarts, `1`–`9` opens a game straight from t
 menu, `0` opens Neon Vice, `-` opens Neon Ridge, `=` opens Neon Deck, and ‹ Back
 or the logo returns to the menu.
 
-Best scores are stored per browser in `localStorage` (`neon.best.<game>`) and
+Best scores are stored per browser in `localStorage` (`legeniko.best.<game>`) and
 shown on the menu chips. Sound can be muted with the speaker button.
 
 ## Layout

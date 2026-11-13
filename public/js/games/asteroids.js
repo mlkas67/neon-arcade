@@ -1,5 +1,5 @@
 /* ============================================================
-   Neon Arcade — Asteroid Drift
+   Legeniko Arcade — Asteroid Drift
    ============================================================ */
 (function () {
   'use strict';

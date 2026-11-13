@@ -1,5 +1,5 @@
 /* ============================================================
-   Neon Arcade — static server
+   Legeniko Arcade — static server
    Serves the site over both HTTP (8080) and HTTPS (8443).
    On first run it generates a self-signed certificate.
    ============================================================ */

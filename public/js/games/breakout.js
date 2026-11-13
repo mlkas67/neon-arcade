@@ -1,5 +1,5 @@
 /* ============================================================
-   Neon Arcade — Brick Breaker
+   Legeniko Arcade — Brick Breaker
    ============================================================ */
 (function () {
   'use strict';

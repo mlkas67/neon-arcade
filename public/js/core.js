@@ -1,5 +1,5 @@
 /* ============================================================
-   Neon Arcade — core engine
+   Legeniko Arcade — core engine
    Fixed-timestep loop, input, sound, effects, UI plumbing.
    Games implement: reset(), update(dt), draw(ctx, dt),
    action(), updateDeath(dt)  (optional)
@@ -32,15 +32,20 @@
   const Store = {
     get(key, fallback) {
       try {
-        const raw = localStorage.getItem('neon.' + key);
-        return raw == null ? fallback : JSON.parse(raw);
+        const raw = localStorage.getItem('legeniko.' + key);
+        if (raw != null) return JSON.parse(raw);
+        // scores saved before the rename still count
+        const old = localStorage.getItem('neon.' + key);
+        if (old == null) return fallback;
+        localStorage.setItem('legeniko.' + key, old);
+        return JSON.parse(old);
       } catch (e) {
         return fallback;
       }
     },
     set(key, value) {
       try {
-        localStorage.setItem('neon.' + key, JSON.stringify(value));
+        localStorage.setItem('legeniko.' + key, JSON.stringify(value));
       } catch (e) { /* private mode — scores just won't persist */ }
     }
   };
