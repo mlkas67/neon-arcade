@@ -1,6 +1,6 @@
 # Neon Arcade
 
-Nine arcade games in one neon-lit browser page — no build step, no
+Ten arcade games in one neon-lit browser page — no build step, no
 dependencies, just HTML/CSS/JS on a shared canvas. It installs as an app and
 plays offline.
 
@@ -20,7 +20,7 @@ window, icon and dock/taskbar entry — no store, no download.
 | Firefox | menu → *Install* / *Add to Home screen* where supported |
 
 Once installed, the whole cabinet launches from the icon and **works with no
-network**: `sw.js` precaches the page, styles, engine and all nine games (19
+network**: `sw.js` precaches the page, styles, engine and all ten games (20
 files), then refreshes them in the background when you are online. Installed
 icons also get shortcuts to Geometry Dash, Flappy Bird and 2048.
 
@@ -35,6 +35,7 @@ icons also get shortcuts to Geometry Dash, Flappy Bird and 2048.
 | 7 | **Neon Pong** | you against the CPU, first to 7 |
 | 8 | **Memory Grid** | flip pairs in a 4×4 grid, finish in as few moves as possible |
 | 9 | **Whack-a-Bot** | 40-second bot-bashing sprint with gold bots and combos |
+| 10 | **Neon Vice** | top-down open-city driving sandbox: run deliveries, bank cash, out-drive the cops (press <kbd>0</kbd>) |
 
 ## Run it
 
@@ -101,9 +102,10 @@ chmod +x ~/.local/bin/cloudflared
 | Neon Pong | `W` `S` move, `Space` serve | mouse or touch to move |
 | Memory Grid | — | click or tap cards |
 | Whack-a-Bot | — | click or tap bots |
+| Neon Vice | `↑`/`W` gas, `↓`/`S` brake + reverse, `←` `→` steer, `Space` handbrake, `E` get in/out | not used — it is a driving game |
 
 Shared: `P` / `Esc` pauses, `R` restarts, `1`–`9` opens a game straight from the
-menu, and ‹ Back or the logo returns to the menu.
+menu (`0` opens Neon Vice), and ‹ Back or the logo returns to the menu.
 
 Best scores are stored per browser in `localStorage` (`neon.best.<game>`) and
 shown on the menu chips. Sound can be muted with the speaker button.
@@ -117,7 +119,7 @@ public/                 the whole site (this is all the server exposes)
   js/core.js            shared engine: canvas, loop, input, HUD, overlays, audio, particles
   js/geometry-dash.js
   js/flappy.js
-  js/main.js            menu wiring and the 1–9 shortcuts
+  js/main.js            menu wiring and the 1–9 / 0 shortcuts
   js/games/breakout.js
   js/games/snake.js
   js/games/puzzle2048.js
@@ -125,6 +127,7 @@ public/                 the whole site (this is all the server exposes)
   js/games/pong.js
   js/games/memory.js
   js/games/whack.js
+  js/games/vice.js      Neon Vice: camera-following city, cars, peds, wanted level
 server.js               static HTTPS/HTTP server, path-guarded to public/
 scripts/share.sh        public https:// link via a Cloudflare quick tunnel
 scripts/publish-pages.sh  rebuild the gh-pages branch that GitHub Pages serves
