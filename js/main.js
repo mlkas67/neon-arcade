@@ -12,9 +12,14 @@
   });
 
   // number keys jump straight into a game from the menu, in menu order
-  const ORDER = ['gd', 'flappy', 'break', 'snake', 'p2048', 'rocks', 'pong', 'memory', 'whack', 'vice'];
+  const ORDER = ['gd', 'flappy', 'break', 'snake', 'p2048', 'rocks', 'pong', 'memory', 'whack', 'vice', 'ridge', 'deck'];
+  const EXTRA = { Minus: 'ridge', Equal: 'deck' };
   window.addEventListener('keydown', function (e) {
     if (!window.Arcade || window.Arcade.state !== 'menu') return;
+    if (EXTRA[e.code]) {
+      window.Arcade.openGame(EXTRA[e.code]);
+      return;
+    }
     const m = /^Digit([0-9])$/.exec(e.code);
     if (!m) return;
     const id = m[1] === '0' ? ORDER[9] : ORDER[Number(m[1]) - 1];
