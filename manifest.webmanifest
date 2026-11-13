@@ -1,26 +1,91 @@
 {
   "id": "/",
-  "name": "Neon Arcade — nine games",
+  "name": "Neon Arcade — ten games",
   "short_name": "Neon Arcade",
-  "description": "Nine neon browser games: Geometry Dash, Flappy Bird, Brick Breaker, Snake, 2048, Asteroids, Pong, Memory and Whack-a-Bot. Installs as an app and plays offline.",
+  "description": "Ten neon browser games — Geometry Dash, Flappy Bird, Neon Vice, Breakout, Snake, 2048, Asteroids, Pong, Memory and Whack-a-Bot — installable and offline.",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui",
+    "browser"
+  ],
   "orientation": "landscape",
   "background_color": "#08080f",
   "theme_color": "#08080f",
-  "categories": ["games", "entertainment"],
+  "categories": [
+    "games",
+    "entertainment"
+  ],
   "lang": "en",
   "dir": "ltr",
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ],
   "shortcuts": [
-    { "name": "Geometry Dash", "short_name": "Dash", "url": "./?play=gd", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Flappy Bird", "short_name": "Flappy", "url": "./?play=flappy", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "2048", "short_name": "2048", "url": "./?play=p2048", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+    {
+      "name": "Geometry Dash",
+      "short_name": "Dash",
+      "url": "./?play=gd",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Flappy Bird",
+      "short_name": "Flappy",
+      "url": "./?play=flappy",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "2048",
+      "short_name": "2048",
+      "url": "./?play=p2048",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Neon Vice",
+      "short_name": "Neon Vice",
+      "url": "./?play=vice",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
   ]
 }

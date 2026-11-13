@@ -1,7 +1,7 @@
 /* Neon Arcade service worker — the whole cabinet is static, so it can live
    offline. Shell + game scripts are precached on install; anything else that
    gets fetched is cached as it is used. */
-const VERSION = 'neon-arcade-v1';
+const VERSION = 'neon-arcade-v2';
 
 const SHELL = [
   './',
@@ -19,6 +19,7 @@ const SHELL = [
   'js/games/pong.js',
   'js/games/memory.js',
   'js/games/whack.js',
+  'js/games/vice.js',
   'icons/icon-192.png',
   'icons/icon-512.png',
   'icons/icon-maskable-512.png',

@@ -4,8 +4,8 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#08080f" />
-<meta name="description" content="Neon Arcade — nine browser games: Geometry Dash, Flappy Bird, Snake, 2048, Breakout, Asteroids, Pong, Memory and Whack-a-Bot." />
-<title>Neon Arcade — nine games in your browser</title>
+<meta name="description" content="Neon Arcade — ten browser games: Geometry Dash, Flappy Bird, Neon Vice, Breakout, Snake, 2048, Asteroids, Pong, Memory and Whack-a-Bot." />
+<title>Neon Arcade — ten games in your browser</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0b14'/%3E%3Cpath d='M18 46 L32 18 L46 46 Z' fill='%2334e0ff'/%3E%3C/svg%3E" />
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
 <link rel="apple-touch-icon" href="icons/apple-touch-icon-180.png" />
@@ -44,7 +44,7 @@
       <!-- ---------------- MENU ---------------- -->
       <section class="screen screen-menu is-active" id="menuScreen">
         <div class="hero">
-          <p class="eyebrow">Nine games · zero downloads</p>
+          <p class="eyebrow">Ten games · zero downloads</p>
           <h1>Pick your <span class="grad">poison</span></h1>
           <p class="lede">One button each. Infinite rage. Built with canvas, running entirely in your browser.</p>
         </div>
@@ -91,7 +91,7 @@
 
         <div class="cabinet-head">
           <h2>More from the cabinet</h2>
-          <p>Seven more for when you have five minutes and no better ideas.</p>
+          <p>Eight more for when you have five minutes and no better ideas.</p>
         </div>
 
         <div class="cards cards-more">
@@ -167,6 +167,18 @@
             </div>
           </button>
 
+          <button class="card mini card-vice" type="button" data-game="vice">
+            <div class="mini-art" aria-hidden="true"><span class="mini-glyph">🚗</span></div>
+            <div class="card-body">
+              <div class="card-top">
+                <span class="tag tag-pink">SANDBOX</span>
+                <span class="best-chip">BEST <b data-best="vice">0</b></span>
+              </div>
+              <h2>Neon Vice</h2>
+              <p>Steal the night: run package deliveries across a neon city, bank the cash, and out-drive the cops you keep annoying.</p>
+            </div>
+          </button>
+
           <button class="card mini card-whack" type="button" data-game="whack">
             <div class="mini-art" aria-hidden="true"><span class="mini-glyph">🤖</span></div>
             <div class="card-body">
@@ -181,7 +193,7 @@
         </div>
 
         <div class="menu-foot">
-          <span><kbd>1</kbd>–<kbd>9</kbd> jump straight in</span>
+          <span><kbd>1</kbd>–<kbd>9</kbd> · <kbd>0</kbd> jump straight in</span>
           <span><kbd>Space</kbd> / <kbd>Click</kbd> action</span>
           <span><kbd>P</kbd> pause</span>
           <span><kbd>R</kbd> restart</span>
@@ -241,6 +253,7 @@
   <script src="js/games/pong.js"></script>
   <script src="js/games/memory.js"></script>
   <script src="js/games/whack.js"></script>
+  <script src="js/games/vice.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

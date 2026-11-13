@@ -689,6 +689,8 @@ kbd {
 .card-pong .mini-art { background: linear-gradient(150deg, #08131f, #0f2a3d 60%, #12465c); }
 .card-memory .mini-art { background: linear-gradient(150deg, #170f24, #2a1640 60%, #3b1f57); }
 .card-whack .mini-art { background: linear-gradient(150deg, #201226, #3a1633 60%, #571d3c); }
+.card-vice .mini-art { background: linear-gradient(150deg, #061018, #0d2233 55%, #14324a); }
+.card-vice .mini-art::after { background: radial-gradient(circle at 50% 46%, rgba(52, 224, 255, 0.4), transparent 62%); }
 
 .card-break:hover, .card-break:focus-visible { box-shadow: 0 20px 50px -26px rgba(52, 224, 255, 0.6); }
 .card-snake:hover, .card-snake:focus-visible { box-shadow: 0 20px 50px -26px rgba(74, 222, 128, 0.55); }
@@ -697,6 +699,7 @@ kbd {
 .card-pong:hover, .card-pong:focus-visible { box-shadow: 0 20px 50px -26px rgba(52, 224, 255, 0.5); }
 .card-memory:hover, .card-memory:focus-visible { box-shadow: 0 20px 50px -26px rgba(255, 77, 157, 0.45); }
 .card-whack:hover, .card-whack:focus-visible { box-shadow: 0 20px 50px -26px rgba(255, 209, 102, 0.45); }
+.card-vice:hover, .card-vice:focus-visible { box-shadow: 0 20px 50px -26px rgba(52, 224, 255, 0.5); }
 
 /* ---------- responsive ---------- */
 @media (max-width: 900px) {
