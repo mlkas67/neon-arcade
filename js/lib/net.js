@@ -20,6 +20,9 @@
   };
 
   const TOKEN_KEY = 'legeniko.sid';
+  // The static build can be pointed at a server on another origin.
+  const BASE = String((typeof window !== 'undefined' && window.ARCADE_API) || '').replace(/\/+$/, '');
+  Net.base = BASE;
 
   Net.token = function () {
     try { return localStorage.getItem(TOKEN_KEY) || null; } catch (e) { return null; }
@@ -38,10 +41,10 @@
       opts.body = JSON.stringify(opts.body);
       opts.headers['Content-Type'] = 'application/json';
     }
-    opts.credentials = 'same-origin';
+    opts.credentials = BASE ? 'omit' : 'same-origin';
     const token = Net.token();
     if (token) opts.headers.Authorization = 'Bearer ' + token;
-    const res = await fetch(path, opts);
+    const res = await fetch(BASE + path, opts);
     let data = null;
     try { data = await res.json(); } catch (e) { data = null; }
     return { status: res.status, ok: res.ok && data && data.ok !== false, data: data || {} };
@@ -77,9 +80,18 @@
 
   Net.connect = function () {
     if (!Net.server || !Net.user) return;
-    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    let host = location.host;
+    let secure = location.protocol === 'https:';
+    if (BASE) {
+      try {
+        const u = new URL(BASE);
+        host = u.host;
+        secure = u.protocol === 'https:';
+      } catch (e) { /* keep this origin */ }
+    }
+    const proto = secure ? 'wss:' : 'ws:';
     const token = Net.token();
-    const url = proto + '//' + location.host + '/ws' + (token ? '?sid=' + encodeURIComponent(token) : '');
+    const url = proto + '//' + host + '/ws' + (token ? '?sid=' + encodeURIComponent(token) : '');
     Net._closedByUs = false;
 
     let ws;

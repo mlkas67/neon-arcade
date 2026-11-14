@@ -60,6 +60,8 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
   // accounts, friends and the live socket always go straight to the server
   if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/ws')) return;
+  // where the server lives can change between deploys: never serve a cached copy
+  if (url.pathname.endsWith('/js/config.js')) return;
 
   // Navigations: network first so a new deploy shows up, cache as the fallback.
   if (req.mode === 'navigate') {
