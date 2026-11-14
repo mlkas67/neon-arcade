@@ -535,6 +535,81 @@ kbd {
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
 }
 .v3-hint:empty { display: none; }
+.v3-health {
+  flex: 1 1 auto;
+  max-width: 220px;
+  height: 9px;
+  border-radius: 999px;
+  background: rgba(8, 14, 26, 0.7);
+  border: 1px solid rgba(120, 200, 255, 0.28);
+  overflow: hidden;
+  margin: 0 14px;
+}
+.v3-health i {
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #34e0ff, #7cf7c4);
+  box-shadow: 0 0 14px rgba(52, 224, 255, 0.6);
+  transition: width 0.18s linear;
+}
+.v3-health.is-low i { background: linear-gradient(90deg, #ff4d6d, #ffb347); }
+.v3-map {
+  position: absolute;
+  top: 54px;
+  right: clamp(10px, 2.2vw, 20px);
+  width: clamp(96px, 15vw, 176px);
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid rgba(120, 200, 255, 0.24);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+  background: rgba(6, 10, 20, 0.7);
+}
+.v3-weapon {
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(11px, 1.8vw, 15px);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #ffe6a8;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.v3-weapon.is-on { opacity: 1; }
+.v3-prompt {
+  position: absolute;
+  left: 50%;
+  bottom: 64px;
+  transform: translateX(-50%);
+  font-size: clamp(12px, 2vw, 16px);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #0b1220;
+  background: rgba(180, 246, 255, 0.92);
+  border-radius: 999px;
+  padding: 7px 18px;
+  box-shadow: 0 8px 26px rgba(52, 224, 255, 0.35);
+  white-space: nowrap;
+}
+.v3-prompt:empty { display: none; }
+.v3-toast {
+  position: absolute;
+  left: 50%;
+  top: 76px;
+  transform: translateX(-50%);
+  max-width: min(560px, 80%);
+  text-align: center;
+  font-size: clamp(11px, 1.8vw, 15px);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #f4fbff;
+  background: rgba(10, 16, 28, 0.82);
+  border: 1px solid rgba(120, 200, 255, 0.3);
+  border-radius: 12px;
+  padding: 8px 16px;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
 .v3-flash {
   position: absolute;
   inset: 0;

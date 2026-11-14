@@ -151,9 +151,31 @@
     return g;
   }
 
-  const plaza = { ledges: [], rails: [], ramps: [] };
 
-  function buildPlaza() {
+  const MAPS = [
+    { name: 'Neon Plaza', tint: 0x6f7280, accent: PALETTE.line, spawn: { x: 0, z: 62, a: Math.PI } },
+    { name: 'Dockyard', tint: 0x59686a, accent: 0x2ee6a8, spawn: { x: -66, z: 58, a: Math.PI } },
+    { name: 'Rooftop', tint: 0x5b5470, accent: PALETTE.pink, spawn: { x: 0, z: 46, a: Math.PI } }
+  ];
+
+  const maps = [];
+  let plaza = { ledges: [], rails: [], ramps: [] };
+
+  function buildMap(id) {
+    const def = MAPS[id];
+    const m = {
+      id: id,
+      name: def.name,
+      group: new THREE.Group(),
+      ledges: [],
+      rails: [],
+      ramps: [],
+      spawn: def.spawn
+    };
+    m.group.visible = false;
+    world.add(m.group);
+    const add = function (obj) { m.group.add(obj); return obj; };
+
     const floorGeo = new THREE.PlaneGeometry(HALF_X * 2, HALF_Z * 2);
     const floorMat = mat(0xffffff, { roughness: KIT ? 0.72 : 0.85, metalness: KIT ? 0.16 : 0 });
     const floorTex = deckTexture();
@@ -162,7 +184,7 @@
       const concrete = KIT.textures.concrete();
       concrete.repeat.set(HALF_X * 2 / 22, HALF_Z * 2 / 22);
       floorMat.map = concrete;
-      floorMat.color.setHex(0x6f7280);
+      floorMat.color.setHex(def.tint);
       floorMat.emissiveMap = floorTex;
       floorMat.emissive = new THREE.Color(0x1a2b44);
       floorMat.emissiveIntensity = 0.9;
@@ -173,7 +195,7 @@
     const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
-    world.add(floor);
+    add(floor);
 
     const kerbMat = mat(PALETTE.concrete, { roughness: 0.75 });
     const edges = [
@@ -183,66 +205,43 @@
       [HALF_X, 0, 1.4, HALF_Z * 2]
     ];
     edges.forEach(function (e) {
-      const wall = new THREE.Mesh(new THREE.BoxGeometry(e[2], 6, e[3]), kerbMat);
-      wall.position.set(e[0], 3, e[1]);
-      world.add(wall);
-      const glow = neonEdge(e[2], 0.3, 0.3, PALETTE.line);
-      glow.position.set(e[0], 6.1, e[1]);
-      world.add(glow);
+      const wall = new THREE.Mesh(new THREE.BoxGeometry(e[2], id === 2 ? 9 : 6, e[3]), kerbMat);
+      wall.position.set(e[0], (id === 2 ? 9 : 6) / 2, e[1]);
+      add(wall);
+      const glow = neonEdge(e[2], 0.3, 0.3, def.accent);
+      glow.position.set(e[0], id === 2 ? 9.1 : 6.1, e[1]);
+      add(glow);
     });
 
     /* raised ledge with steps on both sides */
     function addLedge(x, z, w, d, h) {
       const base = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), kerbMat);
       base.position.set(x, h / 2, z);
-      world.add(base);
+      add(base);
 
       const lip = neonEdge(w, 0.22, d, PALETTE.violet);
       lip.position.set(x, h + 0.11, z);
-      lip.scale.set(1, 1, 1);
-      world.add(lip);
+      add(lip);
       const edgeGlow = new THREE.Mesh(
         new THREE.BoxGeometry(w + 0.1, 0.5, 0.24),
         new THREE.MeshBasicMaterial({ color: PALETTE.violet })
       );
       edgeGlow.position.set(x, h * 0.55, z + d / 2 + 0.08);
-      world.add(edgeGlow);
+      add(edgeGlow);
 
       /* stairs at both ends */
       for (let i = 1; i <= 3; i++) {
         const stepH = (h / 4) * i;
         const step = new THREE.Mesh(new THREE.BoxGeometry(4.2, stepH, d), mat(0x2a3350, { roughness: 0.8 }));
-        step.position.set(x - w / 2 - 1.4 - (3 - i) * 0 - (3 - i) * 0, stepH / 2, z);
-        step.position.x = x - w / 2 - 2.1 * i;
-        step.scale.x = 1;
-        world.add(step);
+        step.position.set(x - w / 2 - 2.1 * i, stepH / 2, z);
+        add(step);
         const step2 = step.clone();
         step2.position.x = x + w / 2 + 2.1 * i;
-        world.add(step2);
+        add(step2);
       }
 
-      plaza.ledges.push({ x: x, z: z, w: w, d: d, h: h });
+      m.ledges.push({ x: x, z: z, w: w, d: d, h: h });
     }
-
-    addLedge(-46, -26, 44, 22, PLATFORM_Y);
-
-    /* long flat bank to ollie off */
-    const bank = new THREE.Mesh(new THREE.BoxGeometry(60, 3, 16), kerbMat);
-    bank.position.set(30, 1.5, -48);
-    world.add(bank);
-    const bankGlow = neonEdge(60, 0.18, 16, PALETTE.line);
-    bankGlow.position.set(30, 3.05, -48);
-    world.add(bankGlow);
-    plaza.ledges.push({ x: 30, z: -48, w: 60, d: 16, h: 3 });
-
-    /* funbox */
-    const funbox = new THREE.Mesh(new THREE.BoxGeometry(26, 3.6, 26), kerbMat);
-    funbox.position.set(-62, 1.8, 40);
-    world.add(funbox);
-    const funGlow = neonEdge(26, 0.18, 26, PALETTE.pink);
-    funGlow.position.set(-62, 3.7, 40);
-    world.add(funGlow);
-    plaza.ledges.push({ x: -62, z: 40, w: 26, d: 26, h: 3.6 });
 
     /* rail: pos, length, axis */
     function addRail(x, z, length, axis, height) {
@@ -252,7 +251,7 @@
       bar.position.set(x, h, z);
       if (axis === 'x') bar.rotation.z = Math.PI / 2;
       else bar.rotation.x = Math.PI / 2;
-      world.add(bar);
+      add(bar);
 
       const glowBar = new THREE.Mesh(
         new THREE.CylinderGeometry(0.42, 0.42, length, 8),
@@ -260,7 +259,7 @@
       );
       glowBar.position.copy(bar.position);
       glowBar.rotation.copy(bar.rotation);
-      world.add(glowBar);
+      add(glowBar);
 
       const postGeo = new THREE.CylinderGeometry(0.2, 0.2, h, 8);
       const postMat = mat(0x2c3552, { metalness: 0.6, roughness: 0.4 });
@@ -268,15 +267,11 @@
         const p = new THREE.Mesh(postGeo, postMat);
         if (axis === 'x') p.position.set(x + off, h / 2, z);
         else p.position.set(x, h / 2, z + off);
-        world.add(p);
+        add(p);
       });
 
-      plaza.rails.push({ x: x, z: z, len: length, axis: axis, h: h });
+      m.rails.push({ x: x, z: z, len: length, axis: axis, h: h });
     }
-
-    addRail(18, 8, 34, 'z');
-    addRail(46, -18, 26, 'x');
-    addRail(-14, 58, 30, 'x');
 
     /* quarter-pipe / kicker */
     function addKicker(x, z, face) {
@@ -288,25 +283,90 @@
       shape.lineTo(0, 7.4);
       shape.lineTo(0, 0);
       const geo = new THREE.ExtrudeGeometry(shape, { depth: 22, bevelEnabled: false, curveSegments: 14 });
-      const m = new THREE.Mesh(geo, mat(PALETTE.concrete, { roughness: 0.7 }));
-      m.position.set(-2, 0, -11);
-      g.add(m);
+      const mm = new THREE.Mesh(geo, mat(PALETTE.concrete, { roughness: 0.7 }));
+      mm.position.set(-2, 0, -11);
+      g.add(mm);
 
       const lipCurve = new THREE.Mesh(
         new THREE.BoxGeometry(0.4, 0.4, 21),
-        new THREE.MeshBasicMaterial({ color: PALETTE.line })
+        new THREE.MeshBasicMaterial({ color: def.accent })
       );
       lipCurve.position.set(4.4, 7.5, 0);
       g.add(lipCurve);
 
       g.position.set(x, 0, z);
       g.rotation.y = face;
-      world.add(g);
-      plaza.ramps.push({ x: x, z: z, face: face });
+      add(g);
+      m.ramps.push({ x: x, z: z, face: face });
     }
 
-    addKicker(72, 52, Math.PI);
-    addKicker(-70, -60, 0);
+    function addBank(x, z, w, d, h, colour) {
+      const bank = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), kerbMat);
+      bank.position.set(x, h / 2, z);
+      add(bank);
+      const glow = neonEdge(w, 0.18, d, colour || def.accent);
+      glow.position.set(x, h + 0.05, z);
+      add(glow);
+      m.ledges.push({ x: x, z: z, w: w, d: d, h: h });
+    }
+
+    function addContainer(x, z, rot, colour) {
+      const box = new THREE.Mesh(new THREE.BoxGeometry(30, 9, 12), mat(colour, { roughness: 0.7, metalness: 0.35 }));
+      box.position.set(x, 4.5, z);
+      box.rotation.y = rot;
+      add(box);
+      const stripe = new THREE.Mesh(new THREE.BoxGeometry(30.2, 0.4, 12.2), new THREE.MeshBasicMaterial({ color: def.accent }));
+      stripe.position.set(x, 8.4, z);
+      stripe.rotation.y = rot;
+      add(stripe);
+      m.ledges.push({ x: x, z: z, w: Math.abs(Math.cos(rot)) > 0.5 ? 30 : 12, d: Math.abs(Math.cos(rot)) > 0.5 ? 12 : 30, h: 9 });
+    }
+
+    if (id === 0) {
+      addLedge(-46, -26, 44, 22, PLATFORM_Y);
+      addBank(30, -48, 60, 16, 3, PALETTE.line);
+      addBank(-62, 40, 26, 26, 3.6, PALETTE.pink);
+      addRail(18, 8, 34, 'z');
+      addRail(46, -18, 26, 'x');
+      addRail(-14, 58, 30, 'x');
+      addKicker(72, 52, Math.PI);
+      addKicker(-70, -60, 0);
+    } else if (id === 1) {
+      // Docker yard: containers to hop, a long pier rail and one huge launch
+      addContainer(-52, -40, 0, 0x2b6b58);
+      addContainer(-52, -40, 0, 0x2b6b58);
+      addContainer(-18, -52, 0, 0x7a3c52);
+      addContainer(30, -34, Math.PI / 2, 0x35506e);
+      addBank(66, 22, 40, 20, 4.2, def.accent);
+      addRail(-70, 10, 60, 'z', 3.1);
+      addRail(8, 44, 44, 'x', 1.9);
+      addKicker(-16, 24, -Math.PI / 2);
+      addKicker(58, -60, Math.PI);
+      // water beyond the pier edge
+      const water = new THREE.Mesh(
+        new THREE.PlaneGeometry(HALF_X * 6, HALF_Z * 6),
+        new THREE.MeshStandardMaterial({ color: 0x081420, roughness: 0.15, metalness: 0.75 })
+      );
+      water.rotation.x = -Math.PI / 2;
+      water.position.y = -2.4;
+      add(water);
+    } else {
+      // Rooftop: tight parapets, AC units, two lips
+      addLedge(0, -30, 38, 20, 6.4);
+      addLedge(-58, 26, 26, 22, 4.6);
+      addLedge(56, 30, 24, 20, 7.2);
+      addBank(0, 58, 34, 12, 2.6, PALETTE.pink);
+      addRail(-22, 6, 40, 'x', 2.1);
+      addRail(34, -2, 28, 'z', 2.6);
+      addKicker(72, -46, Math.PI);
+      const unitMat = mat(0x39405a, { roughness: 0.55, metalness: 0.4 });
+      [[24, 44], [-34, 46], [12, -66]].forEach(function (p) {
+        const ac = new THREE.Mesh(new THREE.BoxGeometry(10, 4, 8), unitMat);
+        ac.position.set(p[0], 2, p[1]);
+        add(ac);
+        m.ledges.push({ x: p[0], z: p[1], w: 10, d: 8, h: 4 });
+      });
+    }
 
     /* street lamps for glow */
     const lampGeo = new THREE.CylinderGeometry(0.3, 0.42, 26, 8);
@@ -315,23 +375,23 @@
     [[-96, -74], [96, -74], [-96, 74], [96, 74], [0, -78]].forEach(function (p, i) {
       const pole = new THREE.Mesh(lampGeo, lampMat);
       pole.position.set(p[0], 13, p[1]);
-      world.add(pole);
-      const colour = [PALETTE.pink, PALETTE.line, PALETTE.violet, PALETTE.gold, PALETTE.line][i % 5];
+      add(pole);
+      const colour = [PALETTE.pink, def.accent, PALETTE.violet, PALETTE.gold, def.accent][i % 5];
       const bulb = new THREE.Mesh(bulbGeo, new THREE.MeshBasicMaterial({ color: colour }));
       bulb.position.set(p[0], 26, p[1]);
-      world.add(bulb);
+      add(bulb);
       const glow = new THREE.Mesh(
         new THREE.SphereGeometry(2.2, 10, 8),
         new THREE.MeshBasicMaterial({ color: colour, transparent: true, opacity: 0.18 })
       );
       glow.position.copy(bulb.position);
-      world.add(glow);
+      add(glow);
     });
 
     /* skyline backdrop */
     const bMat = mat(0x121a30, { roughness: 0.9 });
     const winMat = new THREE.MeshBasicMaterial({ color: 0x2b6f9a });
-    const rnd = seeded(20234);
+    const rnd = seeded(20234 + id * 17);
     for (let i = 0; i < 26; i++) {
       const w = 14 + rnd() * 20;
       const h = 30 + rnd() * 110;
@@ -344,7 +404,7 @@
       else if (side === 1) b.position.set(along, h / 2, dist);
       else if (side === 2) b.position.set(-dist, h / 2, along);
       else b.position.set(dist, h / 2, along);
-      world.add(b);
+      add(b);
 
       const strip = new THREE.Mesh(new THREE.BoxGeometry(w * 0.9, 0.5, 0.3), winMat);
       strip.position.set(b.position.x, h * 0.72, b.position.z + (b.position.z < 0 ? d / 2 : -d / 2));
@@ -352,9 +412,15 @@
         strip.position.set(b.position.x + (b.position.x < 0 ? w / 2 : -w / 2), h * 0.72, b.position.z);
         strip.rotation.y = Math.PI / 2;
       }
-      world.add(strip);
+      add(strip);
     }
+
+    maps.push(m);
+    return m;
   }
+
+  for (let i = 0; i < MAPS.length; i++) buildMap(i);
+
   /* ---------------- skater ---------------- */
   let skater = null;
   let board = null;
@@ -368,15 +434,16 @@
       deckPivotK.position.y = 1.0;
       gk.add(deckPivotK);
       deckPivotRef = deckPivotK;
-      const deckK = KIT.board({ color: 0x1c2338 });
-      deckK.scale.setScalar(0.36);
+      const deckK = KIT.board({ color: 0x1c2338, grip: 0x0c111c });
+      deckK.scale.setScalar(0.13);
       deckPivotK.add(deckK);
+      deckPivotK.position.y = 0.62;
       const bodyK = new THREE.Group();
-      bodyK.position.y = 0.2;
-      const person = KIT.person({ suit: 0x34e0ff, accent: 0xff4d9d, skin: 0xf0c39a, envMap: scene.environment });
-      person.scale.setScalar(0.19);
-      person.position.y = 0.9;
-      person.rotation.x = 0.1;
+      bodyK.position.y = 0.1;
+      const person = KIT.person({ suit: 0x34e0ff, accent: 0xff4d9d, skin: 0xf0c39a, pants: 0x222b3f, envMap: scene.environment });
+      person.scale.setScalar(0.175);
+      person.position.y = 0.05;
+      person.rotation.x = 0.08;
       bodyK.add(person);
       gk.add(bodyK);
       gk.person = person;
@@ -559,6 +626,7 @@
     const g = window.Games.deck;
     if (!g || !g.keys) return;
     if (TRACKED.indexOf(e.code) >= 0 && Arcade.state === 'playing') e.preventDefault();
+    if (e.code === 'KeyM' && Arcade.state === 'playing') g.cycleMap();
     g.keys[e.code] = true;
   });
   window.addEventListener('keyup', function (e) {
@@ -575,13 +643,14 @@
   /* ---------------- game ---------------- */
   const game = {
     title: 'Neon Deck',
+    usesArrowUp: true,
     tip: 'Skate plaza: push, pop, flip and grind the rails. Chain tricks, keep the combo alive.',
     readyHeading: 'Neon Deck',
-    readyText: 'A neon plaza, three rails and no rules. Press <kbd>Space</kbd> or tap to drop in.',
+    readyText: 'Three parks, real decks and no rules. Press <kbd>Space</kbd> to drop in, <kbd>M</kbd> for the next park.',
     deadHeading: 'Bailed',
     deadText: 'Sketchy landing. Shake it off and run it back?',
     overlayDelay: 480,
-    controlHint: '<kbd>W</kbd> push · <kbd>A</kbd><kbd>D</kbd> carve / flip in the air · <kbd>Space</kbd> ollie · <kbd>S</kbd> brake',
+    controlHint: '<kbd>W</kbd> push · <kbd>A</kbd><kbd>D</kbd> carve / flip in the air · <kbd>Space</kbd> ollie · <kbd>S</kbd> brake · <kbd>M</kbd> change park',
 
     onDeath: function () {
       this.deadHeading = 'Bailed';
@@ -625,16 +694,47 @@
       }
 
       if (!skater) {
-        buildPlaza();
         skater = buildSkater();
         scene.add(skater);
       }
+      if (this.mapIndex == null) this.mapIndex = 0;
+      this.setMap(this.mapIndex);
 
       this.poseSkater();
       this.placeCamera(1);
       stage.show();
       A.setScore(0);
       this.updateHud();
+    },
+
+    setMap: function (idx) {
+      if (!maps.length) return;
+      this.mapIndex = ((idx % maps.length) + maps.length) % maps.length;
+      const m = maps[this.mapIndex];
+      for (const other of maps) other.group.visible = other.id === this.mapIndex;
+      plaza = m;
+      this.pos.set(m.spawn.x, 0, m.spawn.z);
+      this.a = m.spawn.a;
+      this.speed = 0;
+      this.vy = 0;
+      this.grounded = true;
+      this.grind = null;
+      this.flip = 0;
+      this.flipVel = 0;
+      this.shove = 0;
+      this.startLock = true;
+      this.poseSkater();
+      this.placeCamera(1);
+      if (trickText && trickEl) {
+        trickText.textContent = 'MAP · ' + m.name;
+        trickEl.classList.add('is-on');
+        this.trickTimer = 1.6;
+      }
+    },
+
+    cycleMap: function () {
+      this.setMap(this.mapIndex + 1);
+      if (this.A && this.A.Sound) this.A.Sound.point();
     },
 
     fwd: function () {
@@ -921,6 +1021,9 @@
       if (deckPivotRef) {
         deckPivotRef.rotation.z = this.flip;
         deckPivotRef.rotation.y = this.shove;
+      }
+      if (skater.person && skater.person.pose) {
+        skater.person.pose(this.time * 1.7 + 0.4, this.grounded ? (this.grind ? 0.6 : 0.85) : 0.45);
       }
       if (riderBody) {
         const crouch = this.grounded ? (this.grind ? 0.85 : 1) : 0.7;

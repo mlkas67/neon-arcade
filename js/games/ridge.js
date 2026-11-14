@@ -9,13 +9,21 @@
     return;
   }
 
-  const FINISH = 4200;
-  const HALF_WIDTH = 78;
   const GRAVITY = 58;
   const JUMP_V = 25;
   const RIDE_MAX = 122;
   const SEGMENTS = 230;
-  const SEG_LEN = FINISH / SEGMENTS;
+
+  /* Three mountains: different width, drop and length keep the run fresh. */
+  const COURSES = [
+    { name: 'Ice Peak', amp: 92, freq: 0.00155, amp2: 38, freq2: 0.0034, drop: 0.155, wave: 9, waveF: 0.0052, wave2: 4, wave2F: 0.013, half: 78, finish: 4200 },
+    { name: 'Granite Bowl', amp: 126, freq: 0.0021, amp2: 30, freq2: 0.0042, drop: 0.19, wave: 13, waveF: 0.0072, wave2: 3.5, wave2F: 0.0165, half: 64, finish: 4600 },
+    { name: 'Powder Pass', amp: 58, freq: 0.0011, amp2: 54, freq2: 0.0025, drop: 0.12, wave: 6, waveF: 0.004, wave2: 5.5, wave2F: 0.0095, half: 90, finish: 3800 }
+  ];
+  let courseIdx = 0;
+  let FINISH = COURSES[0].finish;
+  let HALF_WIDTH = COURSES[0].half;
+  let SEG_LEN = FINISH / SEGMENTS;
 
   const NEON = { pink: 0xff4d9d, cyan: 0x34e0ff, mint: 0x4ade80, gold: 0xffd166 };
 
@@ -32,14 +40,17 @@
 
   /* ---------------- course maths ---------------- */
   function centre(z) {
-    return 92 * Math.sin(z * 0.00155) + 38 * Math.sin(z * 0.0034 + 1.7);
+    const c = COURSES[courseIdx];
+    return c.amp * Math.sin(z * c.freq) + c.amp2 * Math.sin(z * c.freq2 + 1.7);
   }
   function centreSlope(z) {
-    return 92 * 0.00155 * Math.cos(z * 0.00155) + 38 * 0.0034 * Math.cos(z * 0.0034 + 1.7);
+    const c = COURSES[courseIdx];
+    return c.amp * c.freq * Math.cos(z * c.freq) + c.amp2 * c.freq2 * Math.cos(z * c.freq2 + 1.7);
   }
   /* The drop, plus long rollers so the run breathes. */
   function baseY(z) {
-    return -z * 0.155 + 9 * Math.sin(z * 0.0052) + 4 * Math.sin(z * 0.013 + 2.1);
+    const c = COURSES[courseIdx];
+    return -z * c.drop + c.wave * Math.sin(z * c.waveF) + c.wave2 * Math.sin(z * c.wave2F + 2.1);
   }
   /* Snow banks curl up towards the edges of the piste. */
   function bank(o) {
@@ -321,14 +332,14 @@
   function buildRider() {
     if (KIT) {
       const g = new THREE.Group();
-      const deck = KIT.board({ color: 0x34e0ff });
-      deck.scale.setScalar(0.38);
-      deck.position.y = 0.35;
+      const deck = KIT.board({ color: 0x34e0ff, shape: 'snow' });
+      deck.scale.setScalar(0.2);
+      deck.position.y = 0.28;
       g.add(deck);
-      const body = KIT.person({ suit: 0x24324a, accent: 0xff4d9d, skin: 0xf0c4a0, envMap: scene.environment });
+      const body = KIT.person({ suit: 0x24324a, accent: 0xff4d9d, skin: 0xf0c4a0, pants: 0x1b2740, envMap: scene.environment });
       body.scale.setScalar(0.19);
-      body.position.set(0, -0.1, 0.3);
-      body.rotation.x = 0.12;
+      body.position.set(0, 0.06, 0.22);
+      body.rotation.x = 0.1;
       g.add(body);
       g.body = body;
       g.deck = deck;
@@ -378,6 +389,26 @@
 
   /* ---------------- world build (once per page) ---------------- */
   let built = false;
+
+  function clearWorld() {
+    for (let i = world.children.length - 1; i >= 0; i--) {
+      const child = world.children[i];
+      world.remove(child);
+      /* geometry only: the snow/concrete textures are shared with Kit3D */
+      child.traverse(function (o) { if (o.geometry) o.geometry.dispose(); });
+    }
+    spray = null;
+    obstacles = [];
+    gates = [];
+    built = false;
+  }
+
+  function applyCourse(idx) {
+    courseIdx = ((idx % COURSES.length) + COURSES.length) % COURSES.length;
+    FINISH = COURSES[courseIdx].finish;
+    HALF_WIDTH = COURSES[courseIdx].half;
+    SEG_LEN = FINISH / SEGMENTS;
+  }
 
   function buildWorld() {
     if (built) return;
@@ -435,6 +466,7 @@
     const g = window.Games.ridge;
     if (!g || !g.keys) return;
     if (TRACKED.indexOf(e.code) >= 0 && Arcade.state === 'playing') e.preventDefault();
+    if (e.code === 'KeyM' && Arcade.state === 'playing') g.cycleCourse();
     g.keys[e.code] = true;
   });
   window.addEventListener('keyup', function (e) {
@@ -451,13 +483,14 @@
   /* ---------------- game ---------------- */
   const game = {
     title: 'Neon Ridge',
+    usesArrowUp: true,
     tip: 'Downhill run: carve the piste, thread the gates, spin off the banks and land it.',
     readyHeading: 'Neon Ridge',
-    readyText: 'Four kilometres of neon snow. Press <kbd>Space</kbd> or tap to drop in.',
+    readyText: 'Three mountains of real snow. Press <kbd>Space</kbd> to drop in, <kbd>M</kbd> for the next peak.',
     deadHeading: 'Wiped out',
     deadText: 'The mountain won that one. Go again?',
     overlayDelay: 520,
-    controlHint: '<kbd>←</kbd><kbd>→</kbd> carve · <kbd>↑</kbd> tuck · <kbd>↓</kbd> brake · <kbd>Space</kbd> jump, spin in the air',
+    controlHint: '<kbd>←</kbd><kbd>→</kbd> carve · <kbd>↑</kbd> tuck · <kbd>↓</kbd> brake · <kbd>Space</kbd> jump, spin in the air · <kbd>M</kbd> next mountain',
 
     onDeath: function (reason) {
       if (reason === 'finish') {
@@ -467,6 +500,35 @@
         this.deadHeading = 'Wiped out';
         this.deadText = 'The mountain won that one. Go again?';
       }
+    },
+
+    cycleCourse: function () {
+      applyCourse(courseIdx + 1);
+      clearWorld();
+      buildWorld();
+      this.z = 0;
+      this.o = 0;
+      this.h = 0;
+      this.vy = 0;
+      this.speed = 38;
+      this.airborne = false;
+      this.spin = 0;
+      this.spinVel = 0;
+      this.gatesPassed = 0;
+      this.lastZ = 0;
+      this.score = 0;
+      gates.forEach(function (g) { g.hit = false; });
+      rider.position.copy(worldPos(0, 0, 0));
+      rider.rotation.set(0, heading(0), 0);
+      this.placeCamera(1);
+      if (this.A) this.A.setScore(0);
+      if (trickEl && trickText) {
+        trickText.textContent = 'MOUNTAIN · ' + COURSES[courseIdx].name;
+        trickEl.classList.add('is-on');
+        this.trickTimer = 1.8;
+      }
+      if (this.A && this.A.Sound) this.A.Sound.point();
+      this.updateHud();
     },
 
     reset: function (A) {
