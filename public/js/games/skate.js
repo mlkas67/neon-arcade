@@ -69,12 +69,21 @@
   const comboEl = hud.querySelector('.s3d-combo-a');
   const flashEl = hud.querySelector('.s3d-flash');
 
-  scene.add(new THREE.HemisphereLight(0x9ec8ff, 0x101728, 1.0));
+  const KIT = window.Kit3D || null;
+  if (KIT) {
+    KIT.quality(stage.renderer);
+    stage.renderer.toneMappingExposure = 1.1;
+    KIT.sky(scene, { top: 0x050a1e, bottom: 0x22304d, sunColor: 0xffe9c4, sunPower: 0.4, sunDir: new THREE.Vector3(-0.5, 0.35, -0.7) });
+    scene.environment = KIT.environment(stage.renderer, { top: '#2b3f66', mid: '#141c2c', bottom: '#080b12' });
+  }
+
+  scene.add(new THREE.HemisphereLight(0x9ec8ff, 0x101728, KIT ? 0.8 : 1.0));
   scene.add(new THREE.AmbientLight(0x36406b, 0.5));
 
-  const key = new THREE.DirectionalLight(0xfff0d6, 1.15);
-  key.position.set(-70, 120, 60);
-  scene.add(key);
+  const key = KIT
+    ? KIT.keyLight(scene, { color: 0xfff0d6, intensity: 1.6, x: -90, y: 150, z: 80, shadowSize: 150, shadowFar: 900, shadowMap: 1024 })
+    : new THREE.DirectionalLight(0xfff0d6, 1.15);
+  if (!KIT) { key.position.set(-70, 120, 60); scene.add(key); }
 
   const rim = new THREE.DirectionalLight(0xff4d9d, 0.75);
   rim.position.set(120, 60, -140);
@@ -146,10 +155,24 @@
 
   function buildPlaza() {
     const floorGeo = new THREE.PlaneGeometry(HALF_X * 2, HALF_Z * 2);
-    const floorMat = mat(0x1b2236, { roughness: 0.85 });
-    floorMat.map = deckTexture();
+    const floorMat = mat(0xffffff, { roughness: KIT ? 0.72 : 0.85, metalness: KIT ? 0.16 : 0 });
+    const floorTex = deckTexture();
+    if (KIT) {
+      // blend the procedural concrete with the plaza's painted lines
+      const concrete = KIT.textures.concrete();
+      concrete.repeat.set(HALF_X * 2 / 22, HALF_Z * 2 / 22);
+      floorMat.map = concrete;
+      floorMat.color.setHex(0x6f7280);
+      floorMat.emissiveMap = floorTex;
+      floorMat.emissive = new THREE.Color(0x1a2b44);
+      floorMat.emissiveIntensity = 0.9;
+      floorMat.map.needsUpdate = true;
+    } else {
+      floorMat.map = floorTex;
+    }
     const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
     world.add(floor);
 
     const kerbMat = mat(PALETTE.concrete, { roughness: 0.75 });
@@ -339,6 +362,28 @@
   let riderBody = null;
 
   function buildSkater() {
+    if (KIT) {
+      const gk = new THREE.Group();
+      const deckPivotK = new THREE.Group();
+      deckPivotK.position.y = 1.0;
+      gk.add(deckPivotK);
+      deckPivotRef = deckPivotK;
+      const deckK = KIT.board({ color: 0x1c2338 });
+      deckK.scale.setScalar(0.36);
+      deckPivotK.add(deckK);
+      const bodyK = new THREE.Group();
+      bodyK.position.y = 0.2;
+      const person = KIT.person({ suit: 0x34e0ff, accent: 0xff4d9d, skin: 0xf0c39a, envMap: scene.environment });
+      person.scale.setScalar(0.19);
+      person.position.y = 0.9;
+      person.rotation.x = 0.1;
+      bodyK.add(person);
+      gk.add(bodyK);
+      gk.person = person;
+      board = gk;
+      riderBody = bodyK;
+      return gk;
+    }
     const g = new THREE.Group();
 
     const deckShape = new THREE.BoxGeometry(3.4, 0.26, 9.6);

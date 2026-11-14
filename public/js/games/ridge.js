@@ -89,13 +89,29 @@
   const comboEl = hud.querySelector('.s3d-combo-a');
   const flashEl = hud.querySelector('.s3d-flash');
 
-  scene.background = new THREE.Color(0x0b1633);
+  const KIT = window.Kit3D || null;
+  if (KIT) {
+    KIT.quality(stage.renderer);
+    stage.renderer.toneMappingExposure = 1.0;
+    scene.fog.color.setHex(0xdbe8f7);
+    scene.fog.near = 420;
+    scene.fog.far = 2600;
+    KIT.sky(scene, {
+      top: 0x2f7bd6, bottom: 0xdceaf8, sunColor: 0xfff4da, sunPower: 0.9,
+      sunDir: new THREE.Vector3(-0.42, 0.42, 0.8), radius: 3200, sunPower2: 1
+    });
+    scene.environment = KIT.environment(stage.renderer, { top: '#9fd0ff', mid: '#cfe6ff', bottom: '#f2f7ff' });
+  } else {
+    scene.background = new THREE.Color(0x0b1633);
+  }
 
-  const sun = new THREE.DirectionalLight(0xfff2d8, 1.6);
-  sun.position.set(-260, 420, 180);
-  scene.add(sun);
-  scene.add(new THREE.HemisphereLight(0x9ec8ff, 0x1b2742, 1.05));
-  scene.add(new THREE.AmbientLight(0x2b3a60, 0.42));
+  const sun = KIT
+    ? KIT.keyLight(scene, { color: 0xfff1d6, intensity: 2.4, x: -420, y: 620, z: 260, shadowSize: 340, shadowFar: 2600 })
+    : new THREE.DirectionalLight(0xfff2d8, 1.6);
+  if (!KIT) sun.position.set(-260, 420, 180);
+  if (!KIT) scene.add(sun);
+  scene.add(new THREE.HemisphereLight(KIT ? 0xd8ecff : 0x9ec8ff, KIT ? 0x9fb6cf : 0x1b2742, KIT ? 0.85 : 1.05));
+  scene.add(new THREE.AmbientLight(KIT ? 0xdfeaf7 : 0x2b3a60, KIT ? 0.35 : 0.42));
 
   /* ---------------- terrain ribbon ---------------- */
   const LANES = [-HALF_WIDTH, -HALF_WIDTH * 0.45, 0, HALF_WIDTH * 0.45, HALF_WIDTH];
@@ -105,6 +121,7 @@
     const cols = LANES.length;
     const positions = [];
     const colours = [];
+    const uvs = [];
     const indices = [];
     const c = new THREE.Color();
 
@@ -113,6 +130,7 @@
       for (let j = 0; j < cols; j++) {
         const o = LANES[j];
         positions.push(centre(z) + o, surfaceY(z, o), z);
+        uvs.push((o + HALF_WIDTH * 2) / 14, z / 14);
         c.setHex(LANE_COLOURS[j]);
         const shade = 0.86 + 0.14 * Math.sin(z * 0.02 + j); // soft ripples in the snow
         colours.push(c.r * shade, c.g * shade, c.b * shade);
@@ -131,17 +149,19 @@
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
     geo.setAttribute('color', new THREE.Float32BufferAttribute(colours, 3));
+    geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
     geo.setIndex(indices);
     geo.computeVertexNormals();
 
     const mat = new THREE.MeshStandardMaterial({
       vertexColors: true,
-      roughness: 0.94,
-      metalness: 0.02,
+      map: KIT ? KIT.textures.snow() : null,
+      roughness: 0.66,
+      metalness: 0.06,
       flatShading: false
     });
     const mesh = new THREE.Mesh(geo, mat);
-    mesh.receiveShadow = false;
+    mesh.receiveShadow = true;
     return mesh;
   }
   /* ---------------- roadside scenery ---------------- */
@@ -157,12 +177,39 @@
   scene.add(world);
 
   let rider = null;
+  let spray = null;
   let obstacles = [];
   let gates = [];
   let mountains = null;
 
   function buildMountains() {
     if (mountains) return;
+    if (KIT) {
+      mountains = new THREE.Group();
+      const rnd = seeded(77113);
+      // Snow-capped peaks behind the piste, plus a sun low in the sky.
+      for (let i = 0; i < 11; i++) {
+        const r = 420 + rnd() * 320;
+        const h = 460 + rnd() * 420;
+        const rock = new THREE.Mesh(
+          new THREE.ConeGeometry(r, h, 5),
+          new THREE.MeshStandardMaterial({ color: 0x7c8ea8, roughness: 0.95, flatShading: true })
+        );
+        rock.position.set(-1500 + i * 290 + rnd() * 140, -140 + rnd() * 60, 1450 + rnd() * 800);
+        rock.rotation.y = rnd() * Math.PI;
+        mountains.add(rock);
+        const cap = new THREE.Mesh(
+          new THREE.ConeGeometry(r * 0.68, h * 0.52, 5),
+          new THREE.MeshStandardMaterial({ color: 0xf4f9ff, roughness: 0.7, flatShading: true })
+        );
+        cap.position.copy(rock.position);
+        cap.position.y += h * 0.24;
+        cap.rotation.y = rock.rotation.y;
+        mountains.add(cap);
+      }
+      scene.add(mountains);
+      return;
+    }
     mountains = new THREE.Group();
     const geo = new THREE.ConeGeometry(520, 420, 5);
     const mat = new THREE.MeshStandardMaterial({ color: 0x23395f, roughness: 1, flatShading: true });
@@ -184,6 +231,15 @@
   }
 
   function addTree(x, y, z, scale, dark) {
+    if (KIT) {
+      const t = KIT.tree({ trunk: 3.4 * scale, radius: 3.4 * scale, height: 7 * scale, leaf: dark ? 0x14483c : 0x1d5c4a, snow: true });
+      t.position.set(x, y, z);
+      t.rotation.y = Math.random() * Math.PI;
+      t.scale.setScalar(1);
+      t.traverse(function (o) { if (o.isMesh) o.castShadow = true; });
+      world.add(t);
+      return;
+    }
     const g = new THREE.Group();
     const trunk = new THREE.Mesh(trunkGeo, trunkMat);
     trunk.position.y = 1.7;
@@ -201,6 +257,13 @@
   }
 
   function addRock(x, y, z, scale) {
+    if (KIT) {
+      const r = KIT.rock(2.4 * scale);
+      r.position.set(x, y + 0.9 * scale, z);
+      r.rotation.set(Math.random(), Math.random() * 3, Math.random());
+      world.add(r);
+      return;
+    }
     const m = new THREE.Mesh(rockGeo, rockMat);
     m.position.set(x, y + 0.8, z);
     m.scale.set(scale, scale * 0.75, scale);
@@ -256,6 +319,21 @@
   }
 
   function buildRider() {
+    if (KIT) {
+      const g = new THREE.Group();
+      const deck = KIT.board({ color: 0x34e0ff });
+      deck.scale.setScalar(0.38);
+      deck.position.y = 0.35;
+      g.add(deck);
+      const body = KIT.person({ suit: 0x24324a, accent: 0xff4d9d, skin: 0xf0c4a0, envMap: scene.environment });
+      body.scale.setScalar(0.19);
+      body.position.set(0, -0.1, 0.3);
+      body.rotation.x = 0.12;
+      g.add(body);
+      g.body = body;
+      g.deck = deck;
+      return g;
+    }
     const g = new THREE.Group();
     const jacket = new THREE.MeshStandardMaterial({ color: 0xff4d9d, roughness: 0.5, emissive: 0x7a0030, emissiveIntensity: 0.35 });
     const pants = new THREE.MeshStandardMaterial({ color: 0x1b2740, roughness: 0.8 });
@@ -343,6 +421,10 @@
 
     rider = buildRider();
     scene.add(rider);
+    if (KIT) {
+      spray = KIT.spray({ count: 64, size: 3.4, color: 0xffffff, opacity: 0.7 });
+      world.add(spray.points);
+    }
   }
 
   /* ---------------- input ---------------- */
@@ -455,6 +537,14 @@
     update: function (dt) {
       const keys = this.keys || {};
       this.time += dt;
+      if (rider && rider.body && rider.body.pose) rider.body.pose(this.time, this.airborne ? 0.15 : 0.55);
+      if (spray) {
+        if (!this.airborne && this.speed > 22) {
+          const p = worldPos(this.z, this.o, this.h);
+          spray.burst(p.x + (Math.random() - 0.5) * 2.4, p.y + 0.5, p.z - 1.5, 5 + this.speed * 0.06);
+        }
+        spray.update(dt);
+      }
       if (this.flash > 0) this.flash = Math.max(0, this.flash - dt * 2.4);
       if (this.trickTimer > 0) this.trickTimer = Math.max(0, this.trickTimer - dt);
 

@@ -18,7 +18,9 @@
     reporting: 0,
     lastSent: -1,
     finished: false,
-    resultOpen: false
+    resultOpen: false,
+    countdownEl: null,
+    countdownWatchdog: 0
   };
 
   const el = {};
@@ -60,7 +62,16 @@
   function clearCountdown() {
     if (MP.countdownTimer) clearTimeout(MP.countdownTimer);
     MP.countdownTimer = 0;
+    if (MP.countdownWatchdog) clearTimeout(MP.countdownWatchdog);
+    MP.countdownWatchdog = 0;
     MP.waitingStart = false;
+    if (MP.countdownEl && MP.countdownEl.parentNode) MP.countdownEl.parentNode.removeChild(MP.countdownEl);
+    MP.countdownEl = null;
+    // Belt and braces: any countdown left behind by an earlier round goes too,
+    // otherwise it sits on screen for ever over a live race.
+    Array.prototype.forEach.call(document.querySelectorAll('.mp-countdown'), function (n) {
+      if (n.parentNode) n.parentNode.removeChild(n);
+    });
   }
 
   function toast(text, actions, opts) {
@@ -145,9 +156,19 @@
     countEl.className = 'mp-countdown';
     countEl.innerHTML = '<b>3</b><span>Race ' + (window.Friends ? Friends.gameName(game) : game) + '</span>';
     document.body.appendChild(countEl);
+    MP.countdownEl = countEl;
     let n = 3;
+    const finish = () => {
+      clearCountdown();
+      if (!MP.room) return;
+      MP.waitingStart = false;
+      if (Arcade.state === 'ready') Arcade.begin();
+      else if (Arcade.state === 'paused') { Arcade.resume(); Arcade.begin(); }
+      else if (Arcade.state !== 'playing') { Arcade.restart(); if (Arcade.state === 'ready') Arcade.begin(); }
+      showBar('Racing');
+    };
     const tick = () => {
-      if (!MP.room) { countEl.remove(); return; }
+      if (!MP.room) { clearCountdown(); return; }
       if (n > 0) {
         countEl.querySelector('b').textContent = String(n);
         n -= 1;
@@ -155,16 +176,12 @@
         return;
       }
       countEl.querySelector('b').textContent = 'GO';
-      MP.countdownTimer = setTimeout(() => {
-        countEl.remove();
-        MP.countdownTimer = 0;
-        if (!MP.room) return;
-        MP.waitingStart = false;
-        if (Arcade.state === 'ready') Arcade.begin();
-        showBar('Racing');
-      }, 420);
+      MP.countdownTimer = setTimeout(finish, 420);
     };
     tick();
+    // If a timer is ever starved (a backgrounded tab, a dropped frame), the
+    // race still starts instead of leaving the countdown on screen.
+    MP.countdownWatchdog = setTimeout(finish, 6000);
   }
 
   /* ---------------- reporting ---------------- */
@@ -208,11 +225,10 @@
           paintScores();
           armRace();
         } else if (msg.room.players.length === 2 && Number(msg.room.host) === Number(MP.you)) {
-          // the host kicks the race off once the guest has joined
-          clearTimeout(MP.startTimer);
-          MP.startTimer = setTimeout(() => {
-            if (MP.room && !MP.room.startedAt && MP.room.players.length === 2) Net.send({ t: 'start' });
-          }, 700);
+          // The server starts the race the moment the guest accepts, so all we
+          // do here is show that we are waiting — no client-side start timer,
+          // which used to race the accept and start the room twice.
+          showBar('Starting…');
         }
         break;
       }

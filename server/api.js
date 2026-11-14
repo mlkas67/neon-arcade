@@ -97,7 +97,7 @@ async function handle(req, res, pathname) {
     res.writeHead(204, {
       'Access-Control-Allow-Origin': 'same-origin',
       'Access-Control-Allow-Methods': 'GET,POST,DELETE,OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Arcade-Token'
     });
     return res.end();
   }
@@ -108,6 +108,13 @@ async function handle(req, res, pathname) {
 
   if (!isWrite) {
     // GET routes
+    // Always 200: a signed-out visitor is a normal state, not an error, and a
+    // 401 here makes every first visit log a scary console error.
+    if (pathname === '/api/session') {
+      const user = auth.currentUser(req);
+      if (!user) return json(res, 200, { ok: true, user: null, friends: [] });
+      return json(res, 200, { ok: true, user: publicUser(user), friends: friendView(user.id) });
+    }
     if (pathname === '/api/me') {
       const user = auth.currentUser(req);
       if (!user) return json(res, 401, { ok: false, error: 'Not signed in.' });
@@ -160,7 +167,7 @@ async function handle(req, res, pathname) {
     const user = { id, username };
     const token = auth.signIn(user, req);
     clearFailures(ipKey);
-    return json(res, 200, { ok: true, user }, { 'Set-Cookie': auth.cookieHeader(token, isSecure(req)) });
+    return json(res, 200, { ok: true, user, token }, { 'Set-Cookie': auth.cookieHeader(token, isSecure(req)) });
   }
 
   if (pathname === '/api/login') {
@@ -175,7 +182,7 @@ async function handle(req, res, pathname) {
     }
     const token = auth.signIn({ id: row.id, username: row.username }, req);
     clearFailures(ipKey);
-    return json(res, 200, { ok: true, user: { id: row.id, username: row.username } }, {
+    return json(res, 200, { ok: true, user: { id: row.id, username: row.username }, token }, {
       'Set-Cookie': auth.cookieHeader(token, isSecure(req))
     });
   }

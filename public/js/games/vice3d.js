@@ -70,9 +70,19 @@
     document.body.appendChild(renderer.domElement);
   }
 
+  const KIT = window.Kit3D || null;
+  if (KIT) {
+    KIT.quality(renderer);
+    renderer.toneMappingExposure = 1.16;
+  }
+
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0a1024);
-  scene.fog = new THREE.Fog(0x0a1024, 300, 1350);
+  scene.fog = new THREE.Fog(0x0a1024, 340, 1500);
+  if (KIT) {
+    KIT.sky(scene, { top: 0x050a1c, bottom: 0x1d2a4d, sunColor: 0xffd9f2, sunPower: 0.35, sunDir: new THREE.Vector3(-0.5, 0.28, -0.8) });
+    scene.environment = KIT.environment(renderer, { top: '#28406e', mid: '#16233d', bottom: '#070a12' });
+  }
 
   const camera = new THREE.PerspectiveCamera(62, 16 / 9, 1, 4000);
 
@@ -84,6 +94,10 @@
   const rim = new THREE.DirectionalLight(0xff4d9d, 0.8);
   rim.position.set(380, 240, -520);
   scene.add(rim);
+
+  if (KIT) {
+    KIT.keyLight(scene, { color: 0xcfdcff, intensity: 1.5, x: -320, y: 520, z: 300, shadowSize: 460, shadowFar: 2200 });
+  }
 
   function resize3d() {
     if (!frame) return;
@@ -171,9 +185,10 @@
   const groundTex = buildGroundTexture();
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(WORLD_W, WORLD_H),
-    new THREE.MeshStandardMaterial({ map: groundTex, roughness: 0.92, metalness: 0.1 })
+    new THREE.MeshStandardMaterial({ map: groundTex, roughness: 0.62, metalness: 0.28 })
   );
   ground.rotation.x = -Math.PI / 2;
+  ground.receiveShadow = true;
   scene.add(ground);
 
   /* Window texture shared by all towers of one palette. */
@@ -207,7 +222,18 @@
   const boxGeo = new THREE.BoxGeometry(1, 1, 1);
   const wheelGeo = new THREE.CylinderGeometry(1.1, 1.1, 1.1, 10);
 
+  const ENV = scene.environment || null;
+
   function makeCar(bodyColor, cabinColor, emissive) {
+    if (KIT) {
+      // Real car silhouette: extruded body, glass, rims/flex, headlight wash.
+      const model = KIT.car({
+        color: bodyColor, length: 9.6, width: 4.2, height: 1.7,
+        rimColor: 0xd7e2ef, envMap: ENV
+      });
+      model.scale.setScalar(1);
+      return model;
+    }
     const group = new THREE.Group();
 
     const bodyMat = new THREE.MeshStandardMaterial({
@@ -273,6 +299,11 @@
   }
 
   function makePed(color) {
+    if (KIT) {
+      const p = KIT.person({ suit: color, accent: color, skin: 0xd9ab86, envMap: ENV });
+      p.scale.setScalar(0.115);
+      return p;
+    }
     const g = new THREE.Group();
     const body = new THREE.Mesh(
       new THREE.CapsuleGeometry(0.55, 1.5, 4, 8),
@@ -478,21 +509,38 @@
       }
     });
 
-    // street lamps at every intersection corner: cheap neon anchors
+    // curbs and lamp posts: the street reads as a real avenue, not a plane
+    const curbMat = new THREE.MeshStandardMaterial({ color: 0x8b8f99, roughness: 0.85, metalness: 0.05 });
+    for (let i = 0; i < COLS; i++) {
+      for (let j = 0; j < ROWS; j++) {
+        const bw = BLOCK - 26, bd = BLOCK - 26;
+        const slab = new THREE.Mesh(new THREE.BoxGeometry(bw, 2.4, bd), curbMat);
+        slab.position.set(toX(roadLine(i) + ROAD / 2 + BLOCK / 2), 1.2, toZ(roadLine(j) + ROAD / 2 + BLOCK / 2));
+        slab.receiveShadow = true;
+        propGroup.add(slab);
+      }
+    }
     for (let i = 0; i <= COLS; i++) {
       for (let j = 0; j <= ROWS; j++) {
-        const post = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.35, 0.5, 12, 6),
-          new THREE.MeshStandardMaterial({ color: 0x2b344a, roughness: 0.7 })
-        );
-        post.position.set(toX(roadLine(i) + ROAD / 2 - 12), 6, toZ(roadLine(j) + ROAD / 2 - 12));
-        propGroup.add(post);
-        const bulb = new THREE.Mesh(
-          new THREE.SphereGeometry(1.1, 8, 6),
-          new THREE.MeshBasicMaterial({ color: 0xffd9a0 })
-        );
-        bulb.position.set(post.position.x, 12.6, post.position.z);
-        propGroup.add(bulb);
+        if (KIT) {
+          const lamp = KIT.streetLamp({ color: j % 2 ? 0xffd9a0 : 0xbfe6ff });
+          lamp.scale.setScalar(0.55);
+          lamp.position.set(toX(roadLine(i) + ROAD / 2 - 12), 0, toZ(roadLine(j) + ROAD / 2 - 12));
+          propGroup.add(lamp);
+        } else {
+          const post = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.35, 0.5, 12, 6),
+            new THREE.MeshStandardMaterial({ color: 0x2b344a, roughness: 0.7 })
+          );
+          post.position.set(toX(roadLine(i) + ROAD / 2 - 12), 6, toZ(roadLine(j) + ROAD / 2 - 12));
+          propGroup.add(post);
+          const bulb = new THREE.Mesh(
+            new THREE.SphereGeometry(1.1, 8, 6),
+            new THREE.MeshBasicMaterial({ color: 0xffd9a0 })
+          );
+          bulb.position.set(post.position.x, 12.6, post.position.z);
+          propGroup.add(bulb);
+        }
       }
     }
 
@@ -931,6 +979,7 @@
     this.updateMarker(dt);
     this.updateCamera(dt);
     this.syncScene();
+    if (this.carMesh && this.carMesh.spinWheels) this.carMesh.spinWheels(dt * Math.min(28, Math.abs(this.car.v) * 0.16));
     this.updateHud();
 
     if (this.health <= 0) this.A.die('wasted');

@@ -55,8 +55,17 @@ function clearCookieHeader(secure) {
 function tokenFrom(req) {
   const cookies = parseCookies(req.headers.cookie);
   if (cookies[COOKIE]) return cookies[COOKIE];
+  const header = String(req.headers['x-arcade-token'] || '');
+  if (header) return header;
   const auth = String(req.headers.authorization || '');
   if (auth.startsWith('Bearer ')) return auth.slice(7);
+  // Keep the same token available to the API, the WebSocket upgrade and any
+  // browser that refuses to store our cookie (in-app browsers, strict privacy
+  // modes): the client mirrors it in local storage and appends it to /ws.
+  try {
+    const sid = new URL(req.url, 'http://localhost').searchParams.get('sid');
+    if (sid) return sid;
+  } catch (e) { /* malformed url */ }
   return null;
 }
 

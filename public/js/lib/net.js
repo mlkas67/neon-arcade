@@ -19,6 +19,19 @@
     _closedByUs: false
   };
 
+  const TOKEN_KEY = 'legeniko.sid';
+
+  Net.token = function () {
+    try { return localStorage.getItem(TOKEN_KEY) || null; } catch (e) { return null; }
+  };
+
+  Net.setToken = function (token) {
+    try {
+      if (token) localStorage.setItem(TOKEN_KEY, token);
+      else localStorage.removeItem(TOKEN_KEY);
+    } catch (e) { /* private mode: the cookie still works */ }
+  };
+
   Net.api = async function (path, options) {
     const opts = Object.assign({ headers: {} }, options || {});
     if (opts.body && typeof opts.body !== 'string') {
@@ -26,6 +39,8 @@
       opts.headers['Content-Type'] = 'application/json';
     }
     opts.credentials = 'same-origin';
+    const token = Net.token();
+    if (token) opts.headers.Authorization = 'Bearer ' + token;
     const res = await fetch(path, opts);
     let data = null;
     try { data = await res.json(); } catch (e) { data = null; }
@@ -63,7 +78,8 @@
   Net.connect = function () {
     if (!Net.server || !Net.user) return;
     const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const url = proto + '//' + location.host + '/ws';
+    const token = Net.token();
+    const url = proto + '//' + location.host + '/ws' + (token ? '?sid=' + encodeURIComponent(token) : '');
     Net._closedByUs = false;
 
     let ws;

@@ -148,7 +148,13 @@ function handle(ws, msg, me) {
       if (!room || room.guest !== me.id) return send(ws, { t: 'error', message: 'That invite has expired.' });
       if (roomFor(me.id)) return send(ws, { t: 'error', message: 'You are already in a match.' });
       inRoom.set(me.id, room.id);
-      room.startedAt = 0;
+      // The guest joining *is* the start signal, so both clients get one
+      // startedAt and arm their countdown together. Starting the room from a
+      // client timer raced with this accept and produced a second countdown.
+      room.scores = {};
+      room.done = {};
+      room.rematch = 0;
+      room.startedAt = Date.now();
       pushRoom(room);
       break;
     }
@@ -170,6 +176,8 @@ function handle(ws, msg, me) {
     case 'start': {
       const room = roomFor(me.id);
       if (!room || room.host !== me.id || !room.guest) return;
+      if (room.startedAt) return; // already racing; starting twice restarted the countdown
+      if (inRoom.get(room.guest) !== room.id) return send(ws, { t: 'error', message: 'Waiting for your friend to accept.' });
       if (!sockets.has(room.guest)) return send(ws, { t: 'error', message: 'Your friend is not connected.' });
       room.startedAt = Date.now();
       room.scores = {};
@@ -202,10 +210,12 @@ function handle(ws, msg, me) {
     case 'rematch': {
       const room = roomFor(me.id);
       if (!room || !room.guest) return;
+      // One Rematch press restarts the round for both players, and the new
+      // startedAt is the single trigger their countdowns arm from.
       room.rematch = Number(msg.round) || (room.rematch + 1);
-      room.startedAt = 0;
       room.scores = {};
       room.done = {};
+      room.startedAt = Date.now();
       pushRoom(room);
       break;
     }
