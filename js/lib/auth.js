@@ -89,6 +89,8 @@
         showError((res.data && res.data.error) || 'Could not sign in.');
         return;
       }
+      if (res.data && res.data.token) Net.setToken(res.data.token);
+      try { localStorage.setItem('legeniko.lastUser', res.data.user.username); } catch (e) { /* private mode */ }
       const me = await Net.api('/api/me');
       await afterLogin(res.data.user, (me.data && me.data.friends) || []);
     } catch (e) {
@@ -101,6 +103,7 @@
 
   async function logout() {
     try { await Net.api('/api/logout', { method: 'POST' }); } catch (e) { /* offline */ }
+    Net.setToken(null);
     Net.disconnect();
     Net.user = null;
     Auth.user = null;
@@ -156,14 +159,23 @@
       Net.emit('auth', null);
     });
 
-    const me = await Net.api('/api/me').catch(() => null);
+    const me = await Net.api('/api/session').catch(() => null);
     if (me && me.status === 200 && me.data && me.data.user) {
       Net.server = true;
       await afterLogin(me.data.user, me.data.friends || []);
-    } else if (me && me.status === 401) {
+    } else if (me && me.status === 200) {
       Net.server = true;
+      Net.setToken(null);
       openGate();
       setMode('login');
+      // a returning player only has to type their password, not their name
+      let last = null;
+      try { last = localStorage.getItem('legeniko.lastUser'); } catch (e) { last = null; }
+      if (last) {
+        el.user.value = last;
+        el.title.textContent = 'Welcome back, ' + last;
+        el.pass.focus();
+      }
     } else {
       // static build (no server): keep the arcade playable as a guest
       Net.server = false;
