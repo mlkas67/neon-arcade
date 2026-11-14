@@ -612,7 +612,8 @@
 
       const tuck = keys.ArrowUp || keys.KeyW;
       const brake = keys.ArrowDown || keys.KeyS;
-      const steer = (keys.ArrowRight || keys.KeyD ? 1 : 0) - (keys.ArrowLeft || keys.KeyA ? 1 : 0);
+      /* +o is world +x, which is screen-left from the chase camera */
+      const steer = (keys.ArrowLeft || keys.KeyA ? 1 : 0) - (keys.ArrowRight || keys.KeyD ? 1 : 0);
 
       /* speed: gravity pulls, tuck helps, brake scrubs */
       let accel = 19 + (tuck ? 15 : 0) - (brake ? 40 : 0);

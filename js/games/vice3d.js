@@ -559,6 +559,7 @@
     this.car = { x: start.x, y: start.y, a: 0, v: 0 };
     this.foot = { x: start.x - 34, y: start.y, a: 0 };
     this.onFoot = false;
+    this.footYaw = 0;
 
     this.carMesh = makeCar(0x34e0ff, 0x0d2233, 0x34e0ff, 'sports', { suit: 0x1b2740, accent: 0x34e0ff, skin: 0xd9ab86, envMap: ENV });
     scene.add(this.carMesh);
@@ -1210,8 +1211,15 @@
   game.updateFoot = function (dt) {
     const k = this.keys;
     const f = this.foot;
-    let dx = ((k.ArrowRight || k.KeyD) ? 1 : 0) - ((k.ArrowLeft || k.KeyA) ? 1 : 0);
-    let dy = ((k.ArrowDown || k.KeyS) ? 1 : 0) - ((k.ArrowUp || k.KeyW) ? 1 : 0);
+    if (this.footYaw == null) this.footYaw = f.a || 0;
+    /* move relative to the camera yaw so W is forward and D is right */
+    const fa = this.footYaw;
+    const fx = Math.cos(fa), fy = Math.sin(fa);
+    const rx = -Math.sin(fa), ry = Math.cos(fa);
+    const fwd = ((k.ArrowUp || k.KeyW) ? 1 : 0) - ((k.ArrowDown || k.KeyS) ? 1 : 0);
+    const side = ((k.ArrowRight || k.KeyD) ? 1 : 0) - ((k.ArrowLeft || k.KeyA) ? 1 : 0);
+    let dx = fx * fwd + rx * side;
+    let dy = fy * fwd + ry * side;
     const len = Math.hypot(dx, dy);
     if (len > 0) {
       dx /= len;
@@ -1220,6 +1228,10 @@
       f.x += dx * FOOT_SPEED * dt;
       f.y += dy * FOOT_SPEED * dt;
       this.footStep = (this.footStep || 0) + dt * 12;
+      /* the chase camera swings round behind you, but slowly enough to strafe */
+      const want = fwd >= 0 ? f.a : f.a + Math.PI;
+      let diff = Math.atan2(Math.sin(want - this.footYaw), Math.cos(want - this.footYaw));
+      this.footYaw += diff * Math.min(1, dt * 2.6);
     }
     f.v = 0;
     this.pushOut(f, 9, false);
@@ -1247,6 +1259,7 @@
     this.foot.x = clamp(this.car.x + Math.cos(side) * 26, 6, WORLD_W - 6);
     this.foot.y = clamp(this.car.y + Math.sin(side) * 26, 6, WORLD_H - 6);
     this.foot.a = this.car.a;
+    this.footYaw = this.car.a;
     this.footMesh.visible = true;
     this.A.Sound.tone(520, 0.08, { type: 'triangle', vol: 0.05, to: 300 });
     return true;
@@ -1436,7 +1449,7 @@
 
   game.updateCamera = function (dt) {
     const body = this.onFoot ? this.foot : this.car;
-    const a = this.onFoot ? this.foot.a : this.car.a;
+    const a = this.onFoot ? (this.footYaw == null ? this.foot.a : this.footYaw) : this.car.a;
     const speed = Math.abs(this.car.v);
     const back = this.onFoot ? 11 : 17 + Math.min(5, speed / 110);
     const height = this.onFoot ? 6.8 : 8.8;
