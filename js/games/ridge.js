@@ -387,6 +387,69 @@
     return g;
   }
 
+  /* ---------------- rival riders (multiplayer ghosts) ---------------- */
+  const ghostRiders = new Map();
+
+  function tintGhost(group, color) {
+    const c = new THREE.Color(color);
+    group.traverse(function (o) {
+      if (!o.material) return;
+      const mats = Array.isArray(o.material) ? o.material : [o.material];
+      o.material = mats.map(function (m) {
+        const copy = m.clone();
+        if (copy.emissive) {
+          copy.emissive.copy(c);
+          copy.emissiveIntensity = 0.32;
+        }
+        return copy;
+      });
+      if (!Array.isArray(mats)) o.material = o.material[0];
+    });
+  }
+
+  function clearGhosts() {
+    ghostRiders.forEach(function (g) {
+      scene.remove(g);
+      g.traverse(function (o) { if (o.geometry) o.geometry.dispose(); });
+    });
+    ghostRiders.clear();
+  }
+
+  function syncGhosts(dt) {
+    if (!window.Arcade || typeof Arcade.rivals !== 'function' || Arcade.state !== 'playing') {
+      ghostRiders.forEach(function (g) { g.visible = false; });
+      return;
+    }
+    const list = Arcade.rivals('ridge');
+    const seen = new Set();
+    for (let i = 0; i < list.length; i++) {
+      const r = list[i];
+      if (r.age > 4000) continue;
+      seen.add(r.id);
+      let g = ghostRiders.get(r.id);
+      if (!g) {
+        g = buildRider();
+        tintGhost(g, Arcade.rivalColor(i));
+        scene.add(g);
+        ghostRiders.set(r.id, g);
+      }
+      const q = r.s || {};
+      const z = typeof q.z === 'number' ? q.z : 0;
+      const o = typeof q.o === 'number' ? q.o : 0;
+      const want = worldPos(z, o + (i + 1) * 2.6, q.h || 0);
+      g.position.lerp(want, Math.min(1, dt * 9));
+      g.rotation.y = heading(z);
+      g.visible = !q.d;
+      if (g.body && g.body.ride) g.body.ride(performance.now() / 1000, 0.5);
+    }
+    ghostRiders.forEach(function (g, id) {
+      if (seen.has(id)) return;
+      scene.remove(g);
+      g.traverse(function (o) { if (o.geometry) o.geometry.dispose(); });
+      ghostRiders.delete(id);
+    });
+  }
+
   /* ---------------- world build (once per page) ---------------- */
   let built = false;
 
@@ -596,9 +659,14 @@
       }
     },
 
+    mpPose: function () {
+      return { z: this.z, o: this.o, h: this.h, sp: this.speed, d: this.dead ? 1 : 0 };
+    },
+
     update: function (dt) {
       const keys = this.keys || {};
       this.time += dt;
+      syncGhosts(dt);
       if (rider && rider.body && rider.body.pose) rider.body.pose(this.time, this.airborne ? 0.15 : 0.55);
       if (spray) {
         if (!this.airborne && this.speed > 22) {
@@ -773,6 +841,7 @@
 
     destroy: function () {
       this.keys = {};
+      clearGhosts();
       if (rider) rider.visible = true;
       stage.hide();
     }
@@ -780,5 +849,5 @@
 
   window.Games = window.Games || {};
   window.Games.ridge = game;
-  window.Ridge = { game: game, stage: stage };
+  window.Ridge = { game: game, stage: stage, ghosts: ghostRiders };
 })();

@@ -312,6 +312,7 @@
       this.drawParallax(c, pal);
       this.drawGround(c, pal);
       this.drawObstacles(c, pal);
+      this.drawRivals(c, pal);
       this.drawTrail(c);
       if (!p.dead) this.drawPlayer(c, pal);
       this.drawSpeedLines(c, pal);
@@ -487,6 +488,37 @@
         c.fillStyle = t.rgb;
         U.roundRect(c, -SIZE / 2, -SIZE / 2, SIZE, SIZE, 7);
         c.fill();
+        c.restore();
+      }
+    },
+
+    mpPose() {
+      return { d: this.distance, y: this.player.y, dead: this.player.dead ? 1 : 0 };
+    },
+
+    drawRivals(c, pal) {
+      if (!window.Arcade || Arcade.state !== 'playing' || !Arcade.rivals) return;
+      const rivals = Arcade.rivals('gd');
+      for (let i = 0; i < rivals.length; i++) {
+        const r = rivals[i];
+        const s = r.s || {};
+        if (r.age > 4000) continue;
+        const x = PX + ((s.d || 0) - this.distance) + SIZE / 2;
+        if (x < -SIZE || x > W + SIZE) continue;
+        const y = typeof s.y === 'number' ? s.y : GY;
+        const col = Arcade.rivalColor(i);
+        c.save();
+        c.globalAlpha = s.dead ? 0.16 : 0.4;
+        c.translate(x, y - SIZE / 2);
+        c.fillStyle = col;
+        c.shadowColor = col;
+        c.shadowBlur = 18;
+        U.roundRect(c, -SIZE / 2, -SIZE / 2, SIZE, SIZE, 8);
+        c.fill();
+        c.restore();
+        c.save();
+        c.globalAlpha = 0.8;
+        Arcade.ghostTag(c, x, y - SIZE - 12, r.username, col);
         c.restore();
       }
     },

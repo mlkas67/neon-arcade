@@ -256,6 +256,10 @@
       }
     },
 
+    mpPose() {
+      return { x: this.ship.x, y: this.ship.y, a: this.ship.a, lv: this.ship.alive ? 1 : 0 };
+    },
+
     draw(c, dt) {
       const g = c.createLinearGradient(0, 0, 0, H);
       g.addColorStop(0, '#04040c');
@@ -327,6 +331,35 @@
         c.restore();
       }
       U.noShadow(c);
+
+      // rival ships (multiplayer ghosts)
+      if (window.Arcade && Arcade.rivals && Arcade.state === 'playing') {
+        const rivals = Arcade.rivals('rocks');
+        for (let i = 0; i < rivals.length; i++) {
+          const r = rivals[i];
+          const q = r.s || {};
+          if (r.age > 4000 || q.lv === 0) continue;
+          const col = Arcade.rivalColor(i);
+          c.save();
+          c.globalAlpha = 0.45;
+          c.translate(q.x || W / 2, q.y || H / 2);
+          c.rotate((q.a || 0) + Math.PI / 2);
+          c.beginPath();
+          c.moveTo(0, -SHIP_R - 3);
+          c.lineTo(SHIP_R * 0.85, SHIP_R * 0.75);
+          c.lineTo(0, SHIP_R * 0.35);
+          c.lineTo(-SHIP_R * 0.85, SHIP_R * 0.75);
+          c.closePath();
+          c.strokeStyle = col;
+          c.lineWidth = 2;
+          c.stroke();
+          c.restore();
+          c.save();
+          c.globalAlpha = 0.75;
+          Arcade.ghostTag(c, q.x || W / 2, (q.y || H / 2) - SHIP_R - 18, r.username, col);
+          c.restore();
+        }
+      }
 
       // hud
       c.save();

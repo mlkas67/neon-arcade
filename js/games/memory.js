@@ -118,12 +118,17 @@
       A.Sound.best();
     },
 
+    mpPose() {
+      return { p: this.pairs };
+    },
+
     draw(c) {
       const g = c.createLinearGradient(0, 0, W, H);
       g.addColorStop(0, '#0a0714');
       g.addColorStop(1, '#101a24');
       c.fillStyle = g;
       c.fillRect(0, 0, W, H);
+      Arcade.drawRivalCards(c, 'memory', H - 56);
 
       for (const card of this.cards) {
         const scale = 1 + card.wob * 0.06;

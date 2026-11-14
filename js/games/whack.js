@@ -177,12 +177,17 @@
       c.restore();
     },
 
+    mpPose() {
+      return { s: this.points };
+    },
+
     draw(c) {
       const g = c.createLinearGradient(0, 0, 0, H);
       g.addColorStop(0, '#0b0718');
       g.addColorStop(1, '#150c22');
       c.fillStyle = g;
       c.fillRect(0, 0, W, H);
+      Arcade.drawRivalCards(c, 'whack', H - 56);
 
       for (const h of this.holes) {
         // socket

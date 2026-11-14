@@ -421,34 +421,82 @@
 
   for (let i = 0; i < MAPS.length; i++) buildMap(i);
 
+  /* ---------------- rival skaters (multiplayer ghosts) ---------------- */
+  const ghostSkaters = new Map();
+
+  function clearGhostSkaters() {
+    ghostSkaters.forEach(function (g) {
+      scene.remove(g);
+      g.traverse(function (o) { if (o.geometry) o.geometry.dispose(); });
+    });
+    ghostSkaters.clear();
+  }
+
+  function syncGhostSkaters(dt) {
+    const live = window.Arcade && typeof Arcade.rivals === 'function' && Arcade.state === 'playing';
+    if (!live) {
+      ghostSkaters.forEach(function (g) { g.visible = false; });
+      return;
+    }
+    const list = Arcade.rivals('deck');
+    const seen = new Set();
+    for (let i = 0; i < list.length; i++) {
+      const r = list[i];
+      if (r.age > 4000) continue;
+      seen.add(r.id);
+      let g = ghostSkaters.get(r.id);
+      if (!g) {
+        g = buildSkater({ ghost: true, color: parseInt(String(Arcade.rivalColor(i)).slice(1), 16) });
+        scene.add(g);
+        ghostSkaters.set(r.id, g);
+      }
+      const q = r.s || {};
+      const want = new THREE.Vector3(q.x || 0, q.y || 0, q.z || 0);
+      g.position.lerp(want, Math.min(1, dt * 10));
+      g.rotation.y = typeof q.a === 'number' ? q.a : 0;
+      g.visible = true;
+      if (g.person && g.person.pose) g.person.pose(performance.now() / 1000, 0.75);
+    }
+    ghostSkaters.forEach(function (g, id) {
+      if (seen.has(id)) return;
+      scene.remove(g);
+      g.traverse(function (o) { if (o.geometry) o.geometry.dispose(); });
+      ghostSkaters.delete(id);
+    });
+  }
+
   /* ---------------- skater ---------------- */
   let skater = null;
   let board = null;
   let deckPivotRef = null;
   let riderBody = null;
 
-  function buildSkater() {
+  function buildSkater(opts) {
+    const ghost = !!(opts && opts.ghost);
+    const tint = (opts && opts.color) || 0x34e0ff;
     if (KIT) {
       const gk = new THREE.Group();
       const deckPivotK = new THREE.Group();
       deckPivotK.position.y = 1.0;
       gk.add(deckPivotK);
-      deckPivotRef = deckPivotK;
-      const deckK = KIT.board({ color: 0x1c2338, grip: 0x0c111c });
+      if (!ghost) deckPivotRef = deckPivotK;
+      const deckK = KIT.board({ color: ghost ? 0x121a2a : 0x1c2338, grip: 0x0c111c });
       deckK.scale.setScalar(0.13);
       deckPivotK.add(deckK);
       deckPivotK.position.y = 0.62;
       const bodyK = new THREE.Group();
       bodyK.position.y = 0.1;
-      const person = KIT.person({ suit: 0x34e0ff, accent: 0xff4d9d, skin: 0xf0c39a, pants: 0x222b3f, envMap: scene.environment });
+      const person = KIT.person({ suit: ghost ? tint : 0x34e0ff, accent: ghost ? tint : 0xff4d9d, skin: 0xf0c39a, pants: 0x222b3f, envMap: scene.environment });
       person.scale.setScalar(0.175);
       person.position.y = 0.05;
       person.rotation.x = 0.08;
       bodyK.add(person);
       gk.add(bodyK);
       gk.person = person;
-      board = gk;
-      riderBody = bodyK;
+      if (!ghost) {
+        board = gk;
+        riderBody = bodyK;
+      }
       return gk;
     }
     const g = new THREE.Group();
@@ -461,7 +509,7 @@
     const deckPivot = new THREE.Group();
     deckPivot.position.y = 1.0;
     g.add(deckPivot);
-    deckPivotRef = deckPivot;
+    if (!ghost) deckPivotRef = deckPivot;
 
     const deck = new THREE.Mesh(deckShape, deckMat);
     deckPivot.add(deck);
@@ -481,7 +529,7 @@
     });
 
     const jacket = new THREE.MeshStandardMaterial({
-      color: 0x34e0ff, roughness: 0.45, emissive: 0x063a4a, emissiveIntensity: 0.5
+      color: ghost ? tint : 0x34e0ff, roughness: 0.45, emissive: ghost ? tint : 0x063a4a, emissiveIntensity: 0.5
     });
     const pants = new THREE.MeshStandardMaterial({ color: 0x2b3350, roughness: 0.85 });
     const skin = new THREE.MeshStandardMaterial({ color: 0xf0c39a, roughness: 0.75 });
@@ -520,8 +568,10 @@
     });
 
     g.add(body);
-    board = g;
-    riderBody = body;
+    if (!ghost) {
+      board = g;
+      riderBody = body;
+    }
     return g;
   }
 
@@ -801,9 +851,14 @@
       return pts;
     },
 
+    mpPose: function () {
+      return { x: this.pos.x, y: this.pos.y, z: this.pos.z, a: this.a };
+    },
+
     update: function (dt) {
       const keys = this.keys || {};
       this.time += dt;
+      syncGhostSkaters(dt);
       updateSparks(dt);
       if (this.flash > 0) this.flash = Math.max(0, this.flash - dt * 2.6);
       if (this.trickTimer > 0) this.trickTimer = Math.max(0, this.trickTimer - dt);
@@ -1054,11 +1109,12 @@
     destroy: function () {
       this.keys = {};
       this.grind = null;
+      clearGhostSkaters();
       stage.hide();
     }
   };
 
   window.Games = window.Games || {};
   window.Games.deck = game;
-  window.Deck = { game: game, stage: stage, plaza: plaza };
+  window.Deck = { game: game, stage: stage, plaza: plaza, ghosts: ghostSkaters };
 })();

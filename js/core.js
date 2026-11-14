@@ -627,5 +627,81 @@
     }
   };
 
+  /* ---------------- rivals (multiplayer ghosts) ---------------- */
+
+  /** Live positions of the other players in your race, for this game. */
+  Arcade.rivals = function (gameId) {
+    if (window.MP && typeof MP.rivals === 'function') return MP.rivals(gameId || Arcade.gameId);
+    return [];
+  };
+
+  Arcade.rivalColor = function (i) {
+    const palette = ['#ff4d9d', '#34e0ff', '#ffd166', '#7cf7a0'];
+    return palette[(i || 0) % palette.length];
+  };
+
+  /** Name pill drawn above a ghost so you can tell whose it is. */
+  Arcade.ghostTag = function (c, x, y, name, color) {
+    const label = String(name || 'Friend').slice(0, 14);
+    c.save();
+    c.globalAlpha = 0.92;
+    c.font = '700 12px ui-monospace, Menlo, monospace';
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    const w = Math.max(34, c.measureText(label).width + 14);
+    c.fillStyle = 'rgba(6,8,18,0.72)';
+    Arcade.util.roundRect(c, x - w / 2, y - 9, w, 18, 9);
+    c.fill();
+    c.strokeStyle = color || '#ff4d9d';
+    c.lineWidth = 1.5;
+    c.stroke();
+    c.fillStyle = color || '#ff4d9d';
+    c.fillText(label, x, y + 0.5);
+    c.restore();
+  };
+
+  /** Translucent ghost avatar, for games with no shared world to stand in. */
+  Arcade.ghostAvatar = function (c, x, y, name, color, scale) {
+    const k = scale || 1;
+    const t = performance.now() / 1000;
+    c.save();
+    c.globalAlpha = 0.5;
+    c.translate(x, y + Math.sin(t * 2 + x * 0.01) * 2);
+    c.scale(k, k);
+    c.fillStyle = color || '#ff4d9d';
+    c.beginPath();
+    c.arc(0, -8, 11, Math.PI, 0);
+    c.lineTo(11, 8);
+    c.lineTo(6, 3);
+    c.lineTo(2, 9);
+    c.lineTo(-3, 3);
+    c.lineTo(-7, 9);
+    c.lineTo(-11, 4);
+    c.closePath();
+    c.fill();
+    c.globalAlpha = 0.9;
+    c.fillStyle = '#070912';
+    c.beginPath();
+    c.arc(-4, -9, 1.9, 0, Math.PI * 2);
+    c.arc(4, -9, 1.9, 0, Math.PI * 2);
+    c.fill();
+    c.restore();
+    c.save();
+    c.globalAlpha = 0.75;
+    Arcade.ghostTag(c, x, y - 26 * k, name, color);
+    c.restore();
+  };
+
+  /** Row of rival ghost cards, for puzzle games with no shared world. */
+  Arcade.drawRivalCards = function (c, gameId, y) {
+    if (!window.Arcade || Arcade.state !== 'playing') return;
+    const rivals = Arcade.rivals(gameId);
+    for (let i = 0; i < rivals.length; i++) {
+      const r = rivals[i];
+      if (r.age > 4000) continue;
+      Arcade.ghostAvatar(c, 34 + i * 62, y, r.username, Arcade.rivalColor(i), 1.15);
+    }
+  };
+
   requestAnimationFrame(tick);
 })();
