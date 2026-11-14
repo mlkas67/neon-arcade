@@ -1,7 +1,7 @@
 /* Legeniko Arcade service worker — the whole cabinet is static, so it can live
    offline. Shell + game scripts are precached on install; anything else that
    gets fetched is cached as it is used. */
-const VERSION = 'legeniko-arcade-v2';
+const VERSION = 'legeniko-arcade-v3';
 
 const SHELL = [
   './',
@@ -23,6 +23,10 @@ const SHELL = [
   'js/games/vice3d.js',
   'js/lib/stage3d.js',
   'js/lib/touch.js',
+  'js/lib/net.js',
+  'js/lib/auth.js',
+  'js/lib/friends.js',
+  'js/lib/mp.js',
   'js/games/ridge.js',
   'js/games/skate.js',
   'icons/icon-192.png',
@@ -54,6 +58,8 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
+  // accounts, friends and the live socket always go straight to the server
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/ws')) return;
 
   // Navigations: network first so a new deploy shows up, cache as the fallback.
   if (req.mode === 'navigate') {

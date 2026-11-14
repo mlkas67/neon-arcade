@@ -21,6 +21,36 @@
   <div class="bg-grid" aria-hidden="true"></div>
   <div class="bg-glow" aria-hidden="true"></div>
 
+  <!-- ---------------- SIGN IN / SIGN UP ---------------- -->
+  <div class="gate" id="gate" hidden>
+    <div class="gate-card" role="dialog" aria-modal="true" aria-labelledby="gateTitle">
+      <div class="gate-brand">LEGENIKO<b>ARCADE</b></div>
+      <h1 class="gate-title" id="gateTitle">Welcome back</h1>
+      <p class="gate-lede" id="gateLede">Log in to keep your friends list and race them live.</p>
+
+      <div class="gate-tabs" role="tablist">
+        <button class="gate-tab is-active" id="tabLogin" type="button" role="tab" aria-selected="true">Log in</button>
+        <button class="gate-tab" id="tabSignup" type="button" role="tab" aria-selected="false">Sign up</button>
+      </div>
+
+      <form class="gate-form" id="gateForm" novalidate>
+        <label class="gate-field">
+          <span>Username</span>
+          <input id="gateUser" name="username" type="text" autocomplete="username" maxlength="16" placeholder="yourname" spellcheck="false" required />
+        </label>
+        <label class="gate-field">
+          <span>Password</span>
+          <input id="gatePass" name="password" type="password" autocomplete="current-password" maxlength="200" placeholder="••••••••" required />
+        </label>
+        <p class="gate-error" id="gateError" hidden></p>
+        <button class="primary-btn gate-submit" id="gateSubmit" type="submit">Log in</button>
+      </form>
+
+      <p class="gate-note" id="gateNote">You stay signed in on this device until you press Log out.</p>
+      <button class="ghost-btn gate-guest" id="gateGuest" type="button" hidden>Play without an account</button>
+    </div>
+  </div>
+
   <div class="app">
     <header class="topbar">
       <a class="brand" href="#" id="brandLink">
@@ -28,6 +58,21 @@
         <span class="brand-name">LEGENIKO<b>ARCADE</b></span>
       </a>
       <div class="top-actions">
+        <div class="user-chip" id="userChip" hidden>
+          <button class="ghost-btn friends-btn" id="friendsBtn" type="button" title="Friends">
+            <span aria-hidden="true">👥</span>
+            <span class="friends-word">Friends</span>
+            <span class="friend-badge" id="friendBadge" hidden>0</span>
+          </button>
+          <button class="ghost-btn user-btn" id="userBtn" type="button" title="Account">
+            <span class="avatar" id="userAvatar">?</span>
+            <span class="user-name" id="userName">player</span>
+          </button>
+          <div class="user-menu" id="userMenu" hidden>
+            <p class="user-menu-name" id="userMenuName">player</p>
+            <button class="user-menu-item" id="logoutBtn" type="button">Log out</button>
+          </div>
+        </div>
         <button class="icon-btn install-btn" id="installBtn" type="button" hidden title="Install as an app">
           <span aria-hidden="true">⬇</span><span class="install-label">Install</span>
         </button>
@@ -230,6 +275,7 @@
           <button class="ghost-btn" id="backBtn" type="button">← Arcade</button>
           <h2 class="stage-title" id="stageTitle">Geometry Dash</h2>
           <div class="stage-actions">
+            <button class="ghost-btn mp-btn" id="mpBtn" type="button" title="Play this game with a friend">⚔</button>
             <button class="ghost-btn fs-btn" id="fsBtn" type="button" hidden aria-label="Full screen" title="Full screen">⛶</button>
             <button class="ghost-btn" id="pauseBtn" type="button">Pause</button>
           </div>
@@ -266,8 +312,38 @@
     <footer class="site-foot">
       <span>Legeniko Arcade — a tiny browser arcade.</span>
       <span class="dot-sep">•</span>
-      <span>No installs, no accounts, scores stay on your device.</span>
+      <span>No installs. Sign in to keep your friends and race them live.</span>
     </footer>
+  </div>
+
+  <!-- ---------------- FRIENDS DRAWER ---------------- -->
+  <aside class="friends-drawer" id="friendsDrawer" hidden aria-label="Friends list">
+    <header class="fd-head">
+      <div>
+        <h3 id="friendsTitle">Friends</h3>
+        <p class="fd-sub" id="friendsHint">Pick a game, then invite a friend to race.</p>
+      </div>
+      <button class="ghost-btn fd-close" id="friendsClose" type="button" aria-label="Close friends">✕</button>
+    </header>
+
+    <form class="fd-add" id="addFriendForm" autocomplete="off">
+      <input id="addFriendInput" type="text" maxlength="16" placeholder="Add friend by username" spellcheck="false" aria-label="Add friend by username" />
+      <button class="primary-btn fd-add-btn" type="submit">Add</button>
+    </form>
+    <p class="fd-msg" id="addFriendMsg" hidden></p>
+
+    <ul class="fd-list" id="friendList"></ul>
+    <p class="fd-empty" id="friendsEmpty">No friends yet. Type a username above to add someone.</p>
+    <p class="fd-foot" id="friendsFoot" hidden></p>
+  </aside>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <div class="mp-bar" id="mpBar" hidden>
+    <span class="mp-state" id="mpState">Match</span>
+    <span class="mp-score mp-you"><i>You</i><b id="mpYou">0</b></span>
+    <span class="mp-score mp-them"><i id="mpThemName">Friend</i><b id="mpThem">0</b></span>
+    <button class="ghost-btn mp-leave" id="mpLeave" type="button">Leave</button>
   </div>
 
   <script src="js/core.js"></script>
@@ -286,6 +362,10 @@
   <script src="js/games/ridge.js"></script>
   <script src="js/games/skate.js"></script>
   <script src="js/lib/touch.js"></script>
+  <script src="js/lib/net.js"></script>
+  <script src="js/lib/auth.js"></script>
+  <script src="js/lib/friends.js"></script>
+  <script src="js/lib/mp.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>
