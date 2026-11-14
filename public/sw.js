@@ -1,7 +1,7 @@
 /* Legeniko Arcade service worker — the whole cabinet is static, so it can live
    offline. Shell + game scripts are precached on install; anything else that
    gets fetched is cached as it is used. */
-const VERSION = 'legeniko-arcade-v5';
+const VERSION = 'legeniko-arcade-v6';
 
 const SHELL = [
   './',
