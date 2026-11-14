@@ -43,12 +43,12 @@ icons also get shortcuts to Geometry Dash, Flappy Bird and 2048.
 ## Run it
 
 ```bash
+npm install        # one dependency: ws, for the live race socket
 npm start          # https://localhost:8443  (+ http://localhost:8080)
 ```
 
-`npm start` uses Node 18+ only — there is nothing to install. On first run the
-server generates a self-signed certificate in `.certs/` so the site is served
-over TLS.
+The server uses Node 22+ (it ships `node:sqlite` for accounts). On first run it
+generates a self-signed certificate in `.certs/` so the site is served over TLS.
 
 Browsers do not trust self-signed certificates, so the first visit shows
 "Your connection is not private". Click **Advanced → Proceed to localhost** and
@@ -130,6 +130,35 @@ Touch devices get their own controls, so nothing needs a keyboard:
 
 Loading the page with `?touch=1` forces the pads on for testing on a computer.
 
+## Accounts, friends and live races
+
+The cabinet opens on a sign-in gate. Signing up asks only for a username
+(3–16 characters: letters, numbers, dot, dash or underscore) and a password of
+at least six characters. A session cookie lasts a year, so a player stays signed
+in on that device until they press **Log out** under their name in the header.
+
+Usernames are unique, case-insensitively, and passwords are stored as scrypt
+hashes — never in plain text.
+
+Signed in, the ⚔ button in the header (and the 👥 chip) opens the friends list:
+
+* **Add** a player by username. Friendship is mutual and needs no approval: both
+  players see each other, with a green dot while the other one is online.
+* **Invite** next to a friend starts a race in whatever game is open; they get a
+  toast with **Join**. You can also invite someone into the game you are playing
+  from the drawer. Both players then land in the same game, get a 3-2-1 countdown
+  and race for the higher score. The result screen shows both scores and offers a
+  **Rematch**; **Leave** in the bar under the header ends the match.
+* **Unfriend** removes the friendship for both sides.
+
+Everything runs on the same Node server: `/api/*` for accounts and friends,
+a WebSocket at `/ws` for presence, invites and race rooms. Accounts live in
+SQLite at `data/arcade.db` (set `DATA_DIR` to move it; the folder is gitignored).
+
+The static GitHub Pages build has no server, so it shows the gate with
+**Play without an account** — every game still works there, minus friends and
+races.
+
 ## Layout
 
 ```
@@ -151,8 +180,16 @@ public/                 the whole site (this is all the server exposes)
   js/games/ridge.js     Neon Ridge: procedural 3D piste, gates, rollers, wipeouts
   js/games/skate.js     Neon Deck: 3D skate plaza, kickers, rails, flip tricks
   js/lib/stage3d.js     shared 3D scaffold (renderer, camera, HUD, teardown)
+  js/lib/net.js         API calls + the /ws socket (presence, invites, races)
+  js/lib/auth.js        sign-in gate, session cookie, logout
+  js/lib/friends.js     friends drawer: add, invite, unfriend, toasts
+  js/lib/mp.js          race bar, countdown, score sync, results, rematch
   vendor/three.min.js   three.js r160 (UMD build, vendored so the game works offline)
-server.js               static HTTPS/HTTP server, path-guarded to public/
+server.js               HTTPS/HTTP server: static files + API + WebSocket
+server/db.js            SQLite (node:sqlite): users, sessions, friends
+server/auth.js          scrypt passwords, session cookie helpers
+server/api.js           /api/signup, login, logout, me, friends, users
+server/rooms.js         /ws: presence, invites, race rooms
 scripts/share.sh        public https:// link via a Cloudflare quick tunnel
 scripts/publish-pages.sh  rebuild the gh-pages branch that GitHub Pages serves
 manifest.webmanifest    PWA manifest (name, icons, shortcuts, standalone display)

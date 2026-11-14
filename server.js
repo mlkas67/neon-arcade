@@ -10,6 +10,8 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
+const api = require('./server/api');
+const rooms = require('./server/rooms');
 
 const ROOT = path.join(__dirname, 'public');
 const HTTP_PORT = Number(process.env.PORT || 8080);
@@ -40,15 +42,21 @@ function send(res, status, body, headers) {
 }
 
 function handler(req, res) {
-  if (req.method !== 'GET' && req.method !== 'HEAD') {
-    return send(res, 405, 'Method Not Allowed', { 'Content-Type': 'text/plain' });
-  }
-
   let pathname;
   try {
     pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
   } catch (e) {
     return send(res, 400, 'Bad Request', { 'Content-Type': 'text/plain' });
+  }
+
+  if (pathname.startsWith('/api/')) {
+    return api.handle(req, res, pathname).catch(() => {
+      send(res, 500, '{"ok":false,"error":"Server problem."}', { 'Content-Type': 'application/json; charset=utf-8' });
+    });
+  }
+
+  if (req.method !== 'GET' && req.method !== 'HEAD') {
+    return send(res, 405, 'Method Not Allowed', { 'Content-Type': 'text/plain' });
   }
 
   if (pathname === '/' || pathname === '') pathname = '/index.html';
@@ -108,18 +116,31 @@ function ensureCert() {
   return { key, cert: crt };
 }
 
-http.createServer(handler).listen(HTTP_PORT, () => {
+const httpServer = http.createServer(handler);
+const httpsServer = (() => {
+  try {
+    const creds = ensureCert();
+    return https.createServer({
+      key: fs.readFileSync(creds.key),
+      cert: fs.readFileSync(creds.cert)
+    }, handler);
+  } catch (e) {
+    console.warn('HTTPS disabled:', e.message);
+    return null;
+  }
+})();
+
+// live layer: presence, invites and race rooms share the http server,
+// and the https one when there is a certificate
+rooms.attach(httpServer, '/ws');
+if (httpsServer) rooms.attach(httpsServer, '/ws');
+
+httpServer.listen(HTTP_PORT, () => {
   console.log('  http://localhost:' + HTTP_PORT);
 });
 
-try {
-  const creds = ensureCert();
-  https.createServer({
-    key: fs.readFileSync(creds.key),
-    cert: fs.readFileSync(creds.cert)
-  }, handler).listen(HTTPS_PORT, () => {
-    console.log('  https://localhost:' + HTTPS_PORT + '  (self-signed certificate)');
+if (httpsServer) {
+  httpsServer.listen(HTTPS_PORT, () => {
+    console.log('  https://localhost:' + HTTPS_PORT + '  (certificate: ' + (process.env.TLS_KEY ? 'provided' : 'self-signed') + ')');
   });
-} catch (e) {
-  console.warn('HTTPS disabled:', e.message);
 }
