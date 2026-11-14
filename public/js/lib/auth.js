@@ -182,7 +182,9 @@
       setMode('login');
       el.guestBtn.hidden = false;
       el.lede.textContent = 'Sign in needs the arcade server. You can still play every game as a guest.';
-      el.note.textContent = 'This copy is running without the arcade server, so accounts and friends are off.';
+      el.note.textContent = Net.base
+        ? 'The arcade server is not answering right now. Tap "Play as guest" to play offline; accounts and friends return when it is back.'
+        : 'This copy is running without the arcade server, so accounts and friends are off.';
       el.submit.disabled = true;
       el.submit.textContent = 'Server offline';
       openGate();

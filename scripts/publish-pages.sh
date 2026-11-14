@@ -23,6 +23,28 @@ trap cleanup EXIT
 cp -R "$ROOT/public/." "$STAGE/"
 touch "$STAGE/.nojekyll"
 
+# GitHub Pages is static, so point the published copy at a real server. Set
+# ARCADE_API=https://your-server, or let this script find the newest live
+# quick tunnel that is still answering /api/health.
+LIVE="${ARCADE_API:-}"
+if [ -z "$LIVE" ]; then
+  for candidate in $(grep -ho 'https://[a-z0-9-]*\.trycloudflare\.com' /tmp/tunnel*.log 2>/dev/null | tac | uniq); do
+    if curl -s --max-time 6 "$candidate/api/health" | grep -q '"ok":true'; then
+      LIVE="$candidate"
+      break
+    fi
+  done
+fi
+if [ -n "$LIVE" ]; then
+  cat > "$STAGE/js/config.js" <<EOF
+/* Published static build: accounts and multiplayer talk to this server. */
+window.ARCADE_API = '$LIVE';
+EOF
+  echo "Accounts on the published site will use: $LIVE"
+else
+  echo "No live server found; the published site will run in guest mode."
+fi
+
 cd "$ROOT"
 REMOTE_URL="$(git remote get-url "$REMOTE")"
 git clone -q "$REMOTE_URL" "$REPO"

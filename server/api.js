@@ -12,6 +12,24 @@ const MAX_BODY = 4 * 1024;
 /** ip -> { count, until } — a small brake on password guessing */
 const attempts = new Map();
 
+/* The static build on another origin (GitHub Pages) talks to this server with
+   a bearer token, never a cookie, so a plain reflect-the-origin CORS answer is
+   enough. Set ARCADE_ALLOW_ORIGIN to a comma-separated allowlist to lock it. */
+const ALLOWED_ORIGINS = (process.env.ARCADE_ALLOW_ORIGIN || '*')
+  .split(',').map((o) => o.trim()).filter(Boolean);
+
+function setCors(req, res) {
+  const origin = req.headers.origin;
+  if (!origin) return;
+  const ok = ALLOWED_ORIGINS.includes('*') || ALLOWED_ORIGINS.includes(origin);
+  if (!ok) return;
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Vary', 'Origin');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Arcade-Token');
+  res.setHeader('Access-Control-Max-Age', '86400');
+}
+
 function json(res, status, body, extraHeaders) {
   res.writeHead(status, Object.assign({
     'Content-Type': 'application/json; charset=utf-8',
@@ -93,12 +111,10 @@ async function handle(req, res, pathname) {
   const method = req.method.toUpperCase();
   const isWrite = method === 'POST' || method === 'DELETE' || method === 'PATCH';
 
+  setCors(req, res);
+
   if (method === 'OPTIONS') {
-    res.writeHead(204, {
-      'Access-Control-Allow-Origin': 'same-origin',
-      'Access-Control-Allow-Methods': 'GET,POST,DELETE,OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Arcade-Token'
-    });
+    res.writeHead(204);
     return res.end();
   }
 

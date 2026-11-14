@@ -9,9 +9,13 @@ plays offline.
 **Live server (temporary tunnel):** <https://collar-dish-later-ski.trycloudflare.com>
 **Source:** <https://github.com/mlkas67/neon-arcade>
 
-The tunnel link is a Cloudflare quick tunnel onto `node server.js`, so it is the
-only link that also gives you accounts, the friends list and live two-player
-races (GitHub Pages is static and falls back to guest play). A quick tunnel
+Both links give you accounts, friends and live two-player races: GitHub Pages is
+static, so the published copy carries the server address in `js/config.js` and
+talks to it directly (the friend's ghost still appears inside your own game).
+`scripts/publish-pages.sh` writes that address in automatically, using
+`ARCADE_API` when set and otherwise the newest quick tunnel that still answers
+`/api/health`; with no server reachable the site falls back to guest play.
+A quick tunnel
 exists only while the machine running the server is up: when it goes down the
 address returns 530 for good and a new one has to be made with
 `bash scripts/share.sh`. For a permanent home, run `npm start` on any host.
