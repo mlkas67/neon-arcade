@@ -6,7 +6,15 @@ running in full 3D on a locally vendored three.js. It installs as an app and
 plays offline.
 
 **Play it:** <https://mlkas67.github.io/neon-arcade/>
+**Live server (temporary tunnel):** <https://collar-dish-later-ski.trycloudflare.com>
 **Source:** <https://github.com/mlkas67/neon-arcade>
+
+The tunnel link is a Cloudflare quick tunnel onto `node server.js`, so it is the
+only link that also gives you accounts, the friends list and live two-player
+races (GitHub Pages is static and falls back to guest play). A quick tunnel
+exists only while the machine running the server is up: when it goes down the
+address returns 530 for good and a new one has to be made with
+`bash scripts/share.sh`. For a permanent home, run `npm start` on any host.
 
 ## Install it as an app
 
