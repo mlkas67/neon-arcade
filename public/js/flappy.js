@@ -205,6 +205,7 @@
       this.drawClouds(c, t, 0.42, 0.22, 58);
       this.drawPipes(c);
       this.drawGround(c, t);
+      this.drawRivals(c);
       this.drawBird(c, t);
 
       // vignette
@@ -347,6 +348,41 @@
         c.stroke();
       }
       c.restore();
+    },
+
+    mpPose() {
+      return { y: this.bird.y, p: this.passed, dead: this.bird.dead ? 1 : 0 };
+    },
+
+    drawRivals(c) {
+      if (!window.Arcade || Arcade.state !== 'playing' || !Arcade.rivals) return;
+      const rivals = Arcade.rivals('flappy');
+      for (let i = 0; i < rivals.length; i++) {
+        const r = rivals[i];
+        const s = r.s || {};
+        if (r.age > 4000) continue;
+        const y = typeof s.y === 'number' ? s.y : H * 0.44;
+        const x = BIRD_X - 118 - i * 54;
+        const col = Arcade.rivalColor(i);
+        c.save();
+        c.globalAlpha = s.dead ? 0.16 : 0.42;
+        c.fillStyle = col;
+        c.shadowColor = col;
+        c.shadowBlur = 16;
+        c.beginPath();
+        c.ellipse(x, y, 21, 16, 0, 0, Math.PI * 2);
+        c.fill();
+        c.globalAlpha = 0.9;
+        c.fillStyle = '#0a0d18';
+        c.beginPath();
+        c.arc(x + 7, y - 4, 2.6, 0, Math.PI * 2);
+        c.fill();
+        c.restore();
+        c.save();
+        c.globalAlpha = 0.8;
+        Arcade.ghostTag(c, x, y - 30, r.username, col);
+        c.restore();
+      }
     },
 
     drawBird(c, t) {

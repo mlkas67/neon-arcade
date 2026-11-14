@@ -11,6 +11,9 @@
 (function () {
   const MP = {
     room: null,
+    poses: {},
+    lastPose: '',
+    poseRound: 0,
     you: null,
     them: null,
     countdownTimer: 0,
@@ -58,6 +61,41 @@
     el.themScore.textContent = String(theirs);
     el.themName.textContent = nameOf(themId());
   }
+
+  /* ---------------- ghost poses ---------------- */
+
+  MP.rivals = function (gameId) {
+    const now = Date.now();
+    const out = [];
+    Object.keys(MP.poses).forEach((key) => {
+      const p = MP.poses[key];
+      if (!p || !p.pose) return;
+      if (gameId && p.pose.game !== gameId) return;
+      out.push({
+        id: Number(key),
+        username: p.username,
+        game: p.pose.game,
+        s: p.pose.s || {},
+        age: now - p.at
+      });
+    });
+    return out;
+  };
+
+  function pumpPose() {
+    if (!MP.room || !MP.room.startedAt || MP.finished) return;
+    if (!window.Arcade || Arcade.state !== 'playing') return;
+    const g = Arcade.game;
+    if (!g || typeof g.mpPose !== 'function') return;
+    let pose = null;
+    try { pose = g.mpPose(); } catch (e) { return; }
+    if (!pose) return;
+    const json = JSON.stringify(pose);
+    if (json === MP.lastPose) return;
+    MP.lastPose = json;
+    Net.send({ t: 'pose', game: Arcade.gameId, pose });
+  }
+  setInterval(pumpPose, 90);
 
   function clearCountdown() {
     if (MP.countdownTimer) clearTimeout(MP.countdownTimer);
@@ -116,6 +154,8 @@
 
   MP.teardown = function (reason) {
     clearCountdown();
+    MP.poses = {};
+    MP.lastPose = '';
     MP.room = null;
     MP.finished = false;
     MP.resultOpen = false;
@@ -134,6 +174,8 @@
     MP.armedFor = MP.room.startedAt;
     MP.finished = false;
     MP.lastSent = -1;
+    MP.poses = {};
+    MP.lastPose = '';
     clearCountdown();
 
     const game = MP.room.game;
@@ -239,6 +281,16 @@
           { label: 'Join', primary: true, run: () => MP.accept(msg.roomId) },
           { label: 'Not now', run: () => MP.decline(msg.roomId) }
         ], { sticky: true });
+        break;
+      }
+      case 'pose': {
+        // the server has already validated and wrapped this as { game, s }
+        if (!MP.room || !msg.pose || !msg.pose.game || !msg.pose.s) break;
+        MP.poses[msg.user] = {
+          username: msg.username || nameOf(msg.user),
+          pose: msg.pose,
+          at: Date.now()
+        };
         break;
       }
       case 'score': {

@@ -199,12 +199,17 @@
       c.restore();
     },
 
+    mpPose() {
+      return { s: this.score };
+    },
+
     draw(c) {
       const g = c.createLinearGradient(0, 0, 0, H);
       g.addColorStop(0, '#0a0714');
       g.addColorStop(1, '#140d24');
       c.fillStyle = g;
       c.fillRect(0, 0, W, H);
+      Arcade.drawRivalCards(c, 'p2048', H - 56);
 
       c.save();
       c.fillStyle = 'rgba(255,255,255,0.04)';

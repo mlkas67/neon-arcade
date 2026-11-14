@@ -230,6 +230,10 @@
       this.ball.r = kept.r;
     },
 
+    mpPose() {
+      return { x: this.paddle.x };
+    },
+
     draw(c, dt) {
       // backdrop
       const g = c.createLinearGradient(0, 0, 0, H);
@@ -237,6 +241,7 @@
       g.addColorStop(1, '#120b22');
       c.fillStyle = g;
       c.fillRect(0, 0, W, H);
+      const pad0 = this.paddle;
 
       // arena frame
       c.strokeStyle = 'rgba(52,224,255,0.16)';
@@ -270,6 +275,28 @@
           c.fillText('II', k.x + k.w / 2, k.y + k.h / 2 + 4);
         }
         c.restore();
+      }
+
+      // rival paddles (multiplayer ghosts)
+      if (window.Arcade && Arcade.rivals && Arcade.state === 'playing') {
+        const rivals = Arcade.rivals('break');
+        for (let i = 0; i < rivals.length; i++) {
+          const r = rivals[i];
+          if (r.age > 4000) continue;
+          const rx = typeof r.s.x === 'number' ? r.s.x : W / 2;
+          const col = Arcade.rivalColor(i);
+          c.save();
+          c.globalAlpha = 0.32;
+          c.strokeStyle = col;
+          c.lineWidth = 2;
+          U.roundRect(c, rx - pad0.w / 2, PAD_Y + 9, pad0.w, PAD_H - 4, 7);
+          c.stroke();
+          c.restore();
+          c.save();
+          c.globalAlpha = 0.75;
+          Arcade.ghostTag(c, rx, PAD_Y - 14, r.username, col);
+          c.restore();
+        }
       }
 
       // paddle

@@ -13,7 +13,7 @@ const MAX_ROOM_MS = 30 * 60 * 1000;
 
 /** userId -> Set<WebSocket> */
 const sockets = new Map();
-/** roomId -> { id, game, host, guest, scores, done, startedAt, rematch } */
+/** roomId -> { id, game, host, guest, scores, done, startedAt, rematch, poses } */
 const rooms = new Map();
 /** userId -> roomId */
 const inRoom = new Map();
@@ -76,6 +76,31 @@ function closeRoom(room, reason) {
   rooms.delete(room.id);
 }
 
+/* A pose is a player's last known position, drawn as a ghost in the other
+   player's view: flat, numeric, and small enough to relay at 10 Hz. */
+const POSE_KEYS = 18;
+function cleanPose(msg) {
+  if (!msg || typeof msg.game !== 'string' || msg.game.length > 24) return null;
+  const raw = msg.pose;
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const keys = Object.keys(raw);
+  if (keys.length > POSE_KEYS) return null;
+  const out = { game: msg.game, s: {} };
+  for (const k of keys) {
+    if (!/^[a-z]{1,4}$/i.test(k)) return null;
+    const v = raw[k];
+    if (typeof v === 'number') {
+      if (!isFinite(v)) return null;
+      out.s[k] = Math.round(v * 100) / 100;
+    } else if (typeof v === 'boolean') {
+      out.s[k] = v;
+    } else {
+      return null;
+    }
+  }
+  return JSON.stringify(out).length > 600 ? null : out;
+}
+
 function newRoomId() {
   // short, easy to read out loud, and hard to guess
   const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -129,6 +154,7 @@ function handle(ws, msg, me) {
         done: {},
         startedAt: 0,
         rematch: 0,
+        poses: {},
         createdAt: Date.now()
       };
       rooms.set(room.id, room);
@@ -153,6 +179,7 @@ function handle(ws, msg, me) {
       // client timer raced with this accept and produced a second countdown.
       room.scores = {};
       room.done = {};
+      room.poses = {};
       room.rematch = 0;
       room.startedAt = Date.now();
       pushRoom(room);
@@ -182,6 +209,7 @@ function handle(ws, msg, me) {
       room.startedAt = Date.now();
       room.scores = {};
       room.done = {};
+      room.poses = {};
       room.rematch = 0;
       pushRoom(room);
       break;
@@ -215,8 +243,24 @@ function handle(ws, msg, me) {
       room.rematch = Number(msg.round) || (room.rematch + 1);
       room.scores = {};
       room.done = {};
+      room.poses = {};
       room.startedAt = Date.now();
       pushRoom(room);
+      break;
+    }
+
+    case 'pose': {
+      const room = roomFor(me.id);
+      if (!room || !room.startedAt) return;
+      const pose = cleanPose(msg);
+      if (!pose) return;
+      // Ghost data is fire-and-forget: forwarded to the other player in the
+      // room and never written anywhere else.
+      room.poses[me.id] = pose;
+      [room.host, room.guest].filter(Boolean).forEach((id) => {
+        if (Number(id) === Number(me.id)) return;
+        sendTo(id, { t: 'pose', user: me.id, username: me.username, game: msg.game, pose });
+      });
       break;
     }
 

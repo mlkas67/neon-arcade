@@ -153,6 +153,17 @@
       A.die('crash');
     },
 
+    mpPose() {
+      const letters = 'abcdefgh';
+      const pose = {};
+      const n = Math.min(8, this.body.length);
+      for (let i = 0; i < n; i++) {
+        pose['x' + letters[i]] = this.body[i].x;
+        pose['y' + letters[i]] = this.body[i].y;
+      }
+      return pose;
+    },
+
     draw(c, dt) {
       const g = c.createLinearGradient(0, 0, 0, H);
       g.addColorStop(0, '#060a12');
@@ -191,6 +202,36 @@
         c.arc(fx, fy, CELL * 0.3 * pulse, 0, Math.PI * 2);
         c.fill();
         c.restore();
+      }
+
+      // your friend's snake, traced in their colour
+      if (window.Arcade && Arcade.rivals && Arcade.state === 'playing') {
+        const rivals = Arcade.rivals('snake');
+        for (let ri = 0; ri < rivals.length; ri++) {
+          const r = rivals[ri];
+          if (r.age > 4000) continue;
+          const col = Arcade.rivalColor(ri);
+          c.save();
+          c.globalAlpha = 0.4;
+          c.strokeStyle = col;
+          c.lineWidth = 2;
+          for (let i = 0; i < 8; i++) {
+            const sx = r.s['x' + 'abcdefgh'[i]];
+            const sy = r.s['y' + 'abcdefgh'[i]];
+            if (typeof sx !== 'number' || typeof sy !== 'number') continue;
+            U.roundRect(c, OX + sx * CELL + 3, OY + sy * CELL + 3, CELL - 6, CELL - 6, 8);
+            c.stroke();
+          }
+          c.restore();
+          const hx = r.s.xa;
+          const hy = r.s.ya;
+          if (typeof hx === 'number' && typeof hy === 'number') {
+            c.save();
+            c.globalAlpha = 0.8;
+            Arcade.ghostTag(c, OX + hx * CELL + CELL / 2, OY + hy * CELL - 14, r.username, col);
+            c.restore();
+          }
+        }
       }
 
       // snake, head to tail with a fading glow

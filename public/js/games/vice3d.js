@@ -423,6 +423,15 @@
     return g;
   }
 
+  game.mpPose = function () {
+    if (this.onFoot) {
+      const f = this.foot;
+      return { x: f.x, y: f.y, a: f.a, f: 1 };
+    }
+    const c = this.car;
+    return { x: c.x, y: c.y, a: c.a, v: c.v, f: 0 };
+  };
+
   game.clearActors = function () {
     const strip = function (mesh) {
       if (!mesh) return;
@@ -435,6 +444,7 @@
         }
       });
     };
+    this.clearGhostPlayers();
     strip(this.carMesh);
     strip(this.footMesh);
     strip(this.markerMesh);
@@ -618,6 +628,7 @@
   };
 
   game.destroy = function () {
+    this.clearGhostPlayers();
     if (this.muzzleLight) this.muzzleLight.intensity = 0;
     (this.bullets || []).forEach(function (b) { scene.remove(b.line); });
     this.bullets = [];
@@ -1482,6 +1493,64 @@
   };
 
   /* ---------------- scene sync + HUD ---------------- */
+  /* ---------------- rival players (multiplayer ghosts) ---------------- */
+  game.ghostPlayers = new Map();
+
+  game.clearGhostPlayers = function () {
+    this.ghostPlayers.forEach(function (g) {
+      scene.remove(g.car);
+      scene.remove(g.ped);
+      g.car.traverse(function (o) { if (o.geometry) o.geometry.dispose(); });
+      g.ped.traverse(function (o) { if (o.geometry) o.geometry.dispose(); });
+    });
+    this.ghostPlayers.clear();
+  };
+
+  game.syncGhostPlayers = function (dt) {
+    const live = window.Arcade && typeof Arcade.rivals === 'function' && Arcade.state === 'playing';
+    const list = live ? Arcade.rivals('vice') : [];
+    const seen = new Set();
+    for (let i = 0; i < list.length; i++) {
+      const r = list[i];
+      if (r.age > 4000) continue;
+      seen.add(r.id);
+      let g = this.ghostPlayers.get(r.id);
+      if (!g) {
+        const col = Arcade.rivalColor(i);
+        const hex = parseInt(String(col).slice(1), 16);
+        const car = makeCar(hex, 0x0d131f, hex, 'sports', { suit: hex, accent: hex, skin: 0xd9ab86, envMap: ENV });
+        const ped = makePed(hex);
+        ped.visible = false;
+        scene.add(car);
+        scene.add(ped);
+        g = { car: car, ped: ped, target: new THREE.Vector3() };
+        this.ghostPlayers.set(r.id, g);
+      }
+      const q = r.s || {};
+      const x = typeof q.x === 'number' ? q.x : 0;
+      const y = typeof q.y === 'number' ? q.y : 0;
+      const a = typeof q.a === 'number' ? q.a : 0;
+      const onFoot = !!q.f;
+      const kind = onFoot ? g.ped : g.car;
+      const other = onFoot ? g.car : g.ped;
+      other.visible = false;
+      kind.visible = true;
+      g.target.set(toX(x), 0, toZ(y));
+      // remote poses arrive 90 ms apart; easing hides the steps
+      kind.position.lerp(g.target, Math.min(1, (dt || 0.016) * 12));
+      kind.rotation.y = Math.PI / 2 - a;
+      if (kind.spinWheels && !onFoot) kind.spinWheels((dt || 0.016) * 16 * Math.min(1, Math.abs(q.v || 0)));
+    }
+    this.ghostPlayers.forEach(function (g, id) {
+      if (seen.has(id)) return;
+      scene.remove(g.car);
+      scene.remove(g.ped);
+      g.car.traverse(function (o) { if (o.geometry) o.geometry.dispose(); });
+      g.ped.traverse(function (o) { if (o.geometry) o.geometry.dispose(); });
+      game.ghostPlayers.delete(id);
+    });
+  };
+
   game.syncScene = function () {
     const car = this.car;
     this.carMesh.position.set(toX(car.x), 0, toZ(car.y));
@@ -1498,6 +1567,7 @@
       this.footMesh.aim();
     }
     if (this.gunMesh) this.gunMesh.visible = !!this.onFoot;
+    this.syncGhostPlayers(this.frameDt || 0.016);
 
     for (const p of this.peds) {
       if (!p.mesh) continue;
@@ -1655,6 +1725,7 @@
 
   game.update = function (dt) {
     this.time += dt;
+    this.frameDt = dt;
     if (this.flash > 0) this.flash = Math.max(0, this.flash - dt * 1.8);
     if (this.health < 0) this.health = 0;
 

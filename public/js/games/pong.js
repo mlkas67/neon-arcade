@@ -182,6 +182,10 @@
       this.serveDelay = 0.9;
     },
 
+    mpPose() {
+      return { y: this.p.y };
+    },
+
     draw(c) {
       const g = c.createLinearGradient(0, 0, 0, H);
       g.addColorStop(0, '#06070f');
@@ -222,6 +226,29 @@
       };
       drawPad(MARGIN, this.p.y, '#34e0ff');
       drawPad(W - MARGIN - PAD_W, this.cpu.y, '#ff4d9d');
+
+      // your friend's paddle, on the far side of the net
+      if (window.Arcade && Arcade.rivals && Arcade.state === 'playing') {
+        const rivals = Arcade.rivals('pong');
+        for (let i = 0; i < rivals.length; i++) {
+          const r = rivals[i];
+          if (r.age > 4000) continue;
+          const ry = typeof r.s.y === 'number' ? r.s.y : H / 2;
+          const col = Arcade.rivalColor(i);
+          const gx = W - MARGIN - PAD_W - 26;
+          c.save();
+          c.globalAlpha = 0.35;
+          c.strokeStyle = col;
+          c.lineWidth = 2;
+          U.roundRect(c, gx, ry - PAD_H / 2, PAD_W, PAD_H, 7);
+          c.stroke();
+          c.restore();
+          c.save();
+          c.globalAlpha = 0.8;
+          Arcade.ghostTag(c, gx + PAD_W / 2, ry - PAD_H / 2 - 16, r.username, col);
+          c.restore();
+        }
+      }
 
       // ball trail
       c.save();
